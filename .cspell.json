@@ -1,0 +1,22 @@
+{
+  "language": "fr-FR",
+  "words": [
+    "supabase",
+    "hackathon",
+    "Déconnecté",
+    "Définie",
+    "Rafraîchir",
+    "Connecté",
+    "réussie",
+    "Authentification",
+    "données",
+    "ligne",
+    "Chargement",
+    "succès"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    ".next",
+    "*.lock"
+  ]
+}
