@@ -19,13 +19,6 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 // ─── Types ────────────────────────────────────────────────────────
-interface ZoneBouchon {
-  id: number;
-  name: string;
-  lat: number;
-  lng: number;
-  level: number; // 0-100
-}
 
 interface Vehicle {
   id: string;
@@ -36,17 +29,10 @@ interface Vehicle {
   speed: number; // km/h simulé
 }
 
-interface TrajetItem {
-  id: number;
-  label: string;
-  from: string;
-  to: string;
-  duration: string;
-  icon: string;
-}
+import { HotZone, TrajetItem } from "@/types/dashboard";
 
 interface Props {
-  zones: ZoneBouchon[];
+  zones: HotZone[];
   selectedTrajet: TrajetItem | null;
 }
 
