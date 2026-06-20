@@ -45,13 +45,17 @@ export function getGreeting(hour: number): string {
   return "Bonne soirée";
 }
 
-export function resolveLocation(lat: number, lng: number): string {
-  if (lat < -19.1 || lat > -18.7 || lng < 47.4 || lng > 47.7) return "Hors Antananarivo";
-  if (lat > -18.87 && lng > 47.53) return "Analamahitsy";
-  if (lat > -18.90 && lat < -18.87) return "Ankorondrano";
-  if (lat > -18.92 && lat < -18.90) return "Analakely";
-  if (lat > -18.94 && lng < 47.52) return "Andohatapenaka";
-  if (lng < 47.50) return "Anosizato";
-  if (lat < -18.94) return "Tanjombato";
-  return "Antananarivo";
+export async function resolveLocation(lat: number, lng: number): Promise<string> {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14`);
+    const data = await res.json();
+    if (data.address) {
+      // Priorités : quartier, banlieue, arrondissement, ville
+      return data.address.suburb || data.address.neighbourhood || data.address.city_district || data.address.town || data.address.city || "Position actuelle";
+    }
+    return "Position actuelle";
+  } catch (err) {
+    console.error("Erreur de géocodage inverse:", err);
+    return "Antananarivo"; // Fallback en cas d'échec
+  }
 }

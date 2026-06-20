@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
-import { Inter, Geist } from "next/font/google"
+import { Poppins, Geist } from "next/font/google"
 import "./globals.css"
-import { Navbar } from "@/components/layout/navbar"
-import { Footer } from "@/components/layout/footer"
 import { Toaster } from "@/components/ui/sonner"
 import { APP_NAME, APP_DESCRIPTION } from "@/config/constants"
 import { cn } from "@/lib/utils";
@@ -10,7 +8,10 @@ import "leaflet/dist/leaflet.css";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
-const inter = Inter({ subsets: ["latin"] })
+const poppins = Poppins({ 
+  subsets: ["latin"],
+  weight: ['400', '500', '600', '700', '800', '900']
+})
 
 export const metadata: Metadata = {
   title: APP_NAME,
@@ -24,13 +25,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" className={cn("font-sans", geist.variable)}>
-      <body className={inter.className}>
+      <body className={poppins.className}>
         <div className="flex flex-col min-h-screen">
-          <Navbar />
           <main className="flex-grow">
             {children}
           </main>
-          <Footer />
         </div>
         <Toaster />
       </body>

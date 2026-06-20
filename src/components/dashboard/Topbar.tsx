@@ -2,18 +2,21 @@
 
 import { COLORS } from "@/lib/dashboard-data";
 
-export default function Topbar({ displayName, location, onLogout, time }: {
+export default function Topbar({ displayName, location, onLogout, time, theme, onToggleTheme, isAuthenticated }: {
   displayName: string;
   location: string;
   onLogout: () => void;
   time: Date;
+  theme: "dark" | "light";
+  onToggleTheme: () => void;
+  isAuthenticated: boolean;
 }) {
   return (
     <header className="topbar">
       <div className="left">
         <div className="logo">
           <div className="pulse" />
-          <span className="brand">Africa<b>Life</b></span>
+          <span className="brand">Smart<b>Ambotaka</b></span>
         </div>
         <span className="live">● LIVE</span>
       </div>
@@ -25,11 +28,22 @@ export default function Topbar({ displayName, location, onLogout, time }: {
       </div>
 
       <div className="right">
-        <div className="user">
-          <div className="avatar">{displayName[0]?.toUpperCase()}</div>
-          <span className="name">{displayName}</span>
-        </div>
-        <button className="logout" onClick={onLogout}>⎋</button>
+        <button className="theme-toggle" onClick={onToggleTheme}>
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+        {isAuthenticated ? (
+          <>
+            <div className="user">
+              <div className="avatar">{displayName[0]?.toUpperCase()}</div>
+              <span className="name">{displayName}</span>
+            </div>
+            <button className="logout" onClick={onLogout} title="Se déconnecter">⎋</button>
+          </>
+        ) : (
+          <button className="login-btn" onClick={() => window.location.href = '/login'}>
+            Se connecter
+          </button>
+        )}
       </div>
 
       <style jsx>{`
@@ -83,6 +97,28 @@ export default function Topbar({ displayName, location, onLogout, time }: {
           display: flex; align-items: center; justify-content: center;
         }
         .logout:hover { background: rgba(255,184,0,0.12); color: ${COLORS.warn}; }
+        .theme-toggle {
+          width: 36px; height: 36px; border-radius: 10px;
+          background: rgba(255,255,255,0.05);
+          font-size: 16px; cursor: pointer;
+          transition: all .2s;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .theme-toggle:hover {
+          background: rgba(0, 229, 160, 0.15);
+        }
+        .login-btn {
+          background: ${COLORS.primary};
+          color: #0A0E1A;
+          padding: 8px 16px;
+          border-radius: 10px;
+          font-size: 13px; font-weight: 700;
+          cursor: pointer; transition: all .2s;
+        }
+        .login-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 229, 160, 0.3);
+        }
       `}</style>
     </header>
   );

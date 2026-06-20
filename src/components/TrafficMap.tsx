@@ -3,7 +3,7 @@
 /**
  * TrafficMap.tsx  —  src/components/TrafficMap.tsx
  *
- * Carte Leaflet interactive pour AfricaLife – Transport Urbain Antananarivo
+ * Carte Leaflet interactive pour Smart Ambotaka – Transport Urbain Antananarivo
  *
  * Dépendances :
  *   npm install leaflet react-leaflet
@@ -14,7 +14,7 @@
  */
 import { supabase } from "@/lib/supabase";
 import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, Circle, Popup, Marker, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Circle, Popup, Marker, useMap, Polyline } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -34,6 +34,7 @@ import { HotZone, TrajetItem } from "@/types/dashboard";
 interface Props {
   zones: HotZone[];
   selectedTrajet: TrajetItem | null;
+  userCoords?: [number, number] | null;
 }
 
 // ─── Véhicules simulés autour d'Antananarivo ─────────────────────
@@ -98,6 +99,7 @@ const TRAJET_COORDS: Record<string, [number, number][]> = {
   "Ankorondrano": [[-18.895, 47.529]],
   "Andravoahangy": [[-18.905, 47.544]],
   "Tanjombato": [[-18.942, 47.533]],
+  "Ambohimanarina": [[-18.865, 47.512]],
 };
 
 function MapController({ selectedTrajet }: { selectedTrajet: TrajetItem | null }) {
@@ -112,6 +114,203 @@ function MapController({ selectedTrajet }: { selectedTrajet: TrajetItem | null }
     }
   }, [selectedTrajet, map]);
   return null;
+}
+
+// ─── Route (OpenRouteService) ────────────────────────────────────
+function RoutePolyline({ trajet, userCoords, onRouteInfo }: { trajet: TrajetItem; userCoords?: [number, number] | null; onRouteInfo: (info: any) => void }) {
+  const [routes, setRoutes] = useState<[number, number][][]>([]);
+  const map = useMap();
+
+  useEffect(() => {
+    let active = true;
+
+    async function fetchRoute() {
+      let fromCoords: [number, number] | undefined;
+      let toCoords: [number, number] | undefined;
+
+      // 1. Déterminer le point de départ
+      if (trajet.from === "CURRENT_LOCATION") {
+        if (userCoords) {
+          fromCoords = userCoords;
+        } else {
+          // Fallback par défaut (Analakely) si le GPS est désactivé
+          console.warn("GPS non disponible, utilisation du point de départ par défaut.");
+          fromCoords = [-18.9137, 47.5361];
+        }
+      } else {
+        fromCoords = TRAJET_COORDS[trajet.from]?.[0];
+      }
+
+      // 2. Déterminer le point d'arrivée
+      toCoords = TRAJET_COORDS[trajet.to]?.[0];
+
+      // Géocodage de secours si la destination n'est pas dans la liste en dur
+      if (!toCoords && trajet.to) {
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(trajet.to + ", Antananarivo")}`);
+          const data = await res.json();
+          if (data && data.length > 0) {
+            toCoords = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+          }
+        } catch (e) {
+          console.error("Erreur géocodage de la destination", e);
+        }
+      }
+
+      if (!fromCoords || !toCoords || !active) {
+        setRoutes([]);
+        return;
+      }
+
+      // Fallback avec la clé fournie si NEXT_PUBLIC n'est pas encore rechargé par le navigateur
+      const apiKey = process.env.NEXT_PUBLIC_ORS_API_KEY || "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjVhYWMwMDA3ZGIzNjQ2NmNiNWE1ZWU0Y2MyMjQ5OTVhIiwiaCI6Im11cm11cjY0In0=";
+      
+      if (!apiKey) {
+        setRoutes([[fromCoords, toCoords]]);
+        return;
+      }
+
+      const profile = trajet.transportType === "marche" ? "foot-walking" : "driving-car";
+
+      try {
+        const fetchReq = async (withAlt: boolean) => {
+          const body: any = {
+            coordinates: [
+              [fromCoords![1], fromCoords![0]], // [lng, lat]
+              [toCoords![1], toCoords![0]]
+            ]
+          };
+          if (withAlt) body.alternative_routes = { target_count: 2, weight_factor: 1.4 };
+
+          const res = await fetch(`https://api.openrouteservice.org/v2/directions/${profile}/geojson`, {
+            method: "POST",
+            headers: {
+              "Authorization": apiKey,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body)
+          });
+          return await res.json();
+        };
+
+        let data = await fetchReq(true);
+        if (data.error) {
+          console.warn("Erreur ORS avec alternative_routes, essai sans alternatives...", data.error);
+          data = await fetchReq(false);
+        }
+
+        if (data.features && data.features.length > 0 && active) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const newRoutes = data.features.map((feature: any) => 
+            feature.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]])
+          );
+          setRoutes(newRoutes);
+
+          // Extraire la distance et durée
+          const summary = data.features[0].properties.summary;
+          onRouteInfo({
+            distKm: (summary.distance / 1000).toFixed(1),
+            durCarMin: Math.round(summary.duration / 60),
+            durFootMin: Math.round((summary.distance / 1000) / 4 * 60) // 4 km/h à pied
+          });
+
+          // Cadrer automatiquement la carte sur le trajet
+          const bounds = L.latLngBounds([fromCoords, toCoords]);
+          map.fitBounds(bounds, { padding: [60, 60] });
+        } else if (active) {
+          console.warn("ORS n'a renvoyé aucune feature. Tracé d'une ligne droite.", data);
+          setRoutes([[fromCoords, toCoords]]);
+          onRouteInfo(null);
+        }
+      } catch (err) {
+        console.error("Erreur réseau ORS:", err);
+        if (active) {
+          setRoutes([[fromCoords, toCoords]]);
+          onRouteInfo(null);
+        }
+      }
+    }
+
+    fetchRoute();
+    return () => { active = false; };
+  }, [trajet, userCoords, map, onRouteInfo]);
+
+  if (routes.length === 0) return null;
+
+  return (
+    <>
+      {/* Route 2 (Alternative - Plus long) en Jaune */}
+      {routes.length > 1 && (
+        <Polyline 
+          positions={routes[1]} 
+          pathOptions={{ color: "#FFB800", weight: 5, opacity: 0.6, dashArray: "10, 10" }} 
+        />
+      )}
+      
+      {/* Route 1 (Principale - Plus court) en Bleu */}
+      {routes.length > 0 && (
+        <Polyline 
+          positions={routes[0]} 
+          pathOptions={{ color: "#00E5FF", weight: 6, opacity: 0.9 }} 
+        />
+      )}
+    </>
+  );
+}
+
+// ─── Localisation GPS Utilisateur ────────────────────────────────
+function UserLocation() {
+  const [position, setPosition] = useState<[number, number] | null>(null);
+  const map = useMap();
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+          setPosition(coords);
+          // Centrer doucement la carte sur l'utilisateur une fois trouvé
+          map.flyTo(coords, 14, { animate: true, duration: 1.5 });
+        },
+        (err) => console.warn("GPS désactivé:", err),
+        { enableHighAccuracy: true }
+      );
+    }
+  }, [map]);
+
+  if (!position) return null;
+
+  return (
+    <Marker 
+      position={position}
+      icon={L.divIcon({
+        className: "",
+        html: `
+          <div style="position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
+            <div style="position:absolute;width:48px;height:48px;background:rgba(0,229,160,0.3);border-radius:50%;animation:pulse-ring 2s infinite;"></div>
+            <div style="position:relative;width:32px;height:32px;background:#0A0E1A;border:2px solid #00E5A0;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.5);z-index:2;">
+              <span style="font-size:16px;line-height:1;">🧑🏽‍💻</span>
+            </div>
+          </div>
+          <style>
+            @keyframes pulse-ring {
+              0% { transform: scale(0.6); opacity: 1; }
+              100% { transform: scale(1.6); opacity: 0; }
+            }
+          </style>
+        `,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
+      })}
+    >
+      <Popup>
+        <div style={{ textAlign: "center", minWidth: 120 }}>
+          <div style={{ fontWeight: 800, fontSize: 13, color: "#00E5A0", marginBottom: 4 }}>📍 C'est vous !</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>Position GPS en direct</div>
+        </div>
+      </Popup>
+    </Marker>
+  );
 }
 
 // ─── Animation des véhicules (simulation GPS) ────────────────────
@@ -180,8 +379,9 @@ function MapLegend() {
 }
 
 // ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────
-export default function TrafficMap({ zones, selectedTrajet }: Props) {
+export default function TrafficMap({ zones, selectedTrajet, userCoords }: Props) {
   const vehicles = useRealtimeVehicles(INITIAL_VEHICLES);
+  const [routeInfo, setRouteInfo] = useState<{ distKm: string, durCarMin: number, durFootMin: number } | null>(null);
 
   // Fix icônes Leaflet (Next.js)
   useEffect(() => {
@@ -203,8 +403,10 @@ export default function TrafficMap({ zones, selectedTrajet }: Props) {
           filter: brightness(0.55) saturate(0.7) hue-rotate(195deg) contrast(1.1);
         }
         .leaflet-container {
-          background: #0d1520 !important;
-          font-family: system-ui, sans-serif;
+          width: 100%;
+          height: 100%;
+          background: #0A0E1A;
+          font-family: inherit;
         }
         .leaflet-popup-content-wrapper {
           background: rgba(10,15,30,.95) !important;
@@ -257,6 +459,15 @@ export default function TrafficMap({ zones, selectedTrajet }: Props) {
         />
 
         <MapController selectedTrajet={selectedTrajet} />
+        <UserLocation />
+        
+        {selectedTrajet && (
+          <RoutePolyline 
+            trajet={selectedTrajet}
+            userCoords={userCoords}
+            onRouteInfo={setRouteInfo}
+          />
+        )}
 
         {/* ── Zones de bouchon (cercles pulsants) ── */}
         {zones.map(zone => (
@@ -340,8 +551,73 @@ export default function TrafficMap({ zones, selectedTrajet }: Props) {
         ))}
       </MapContainer>
 
+      {/* ── Overlay Infos Trajet ── */}
+      {selectedTrajet && routeInfo && (
+        <div className="route-info-card">
+          <div className="route-dest">🎯 {selectedTrajet.to}</div>
+          <div className="route-stats">
+            <div className="stat-item">
+              <span className="icon">📏</span>
+              <span className="val">{routeInfo.distKm} km</span>
+            </div>
+            <div className="stat-item highlight">
+              <span className="icon">🚗</span>
+              <span className="val">{routeInfo.durCarMin} min</span>
+            </div>
+            <div className="stat-item">
+              <span className="icon">🚌</span>
+              <span className="val">{Math.round(routeInfo.durCarMin * 1.3)} min</span>
+            </div>
+            <div className="stat-item">
+              <span className="icon">🚶</span>
+              <span className="val">{routeInfo.durFootMin} min</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Légende overlay */}
       <MapLegend />
+
+      <style jsx>{`
+        .route-info-card {
+          position: absolute;
+          bottom: 30px; left: 50%;
+          transform: translateX(-50%);
+          z-index: 1000;
+          background: rgba(10, 14, 26, 0.95);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(0, 229, 160, 0.3);
+          border-radius: 16px;
+          padding: 16px 24px;
+          display: flex; flex-direction: column; gap: 10px;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 20px rgba(0,229,160,0.15);
+          animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes slideUp {
+          from { transform: translate(-50%, 20px); opacity: 0; }
+          to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        .route-dest {
+          color: #fff; font-size: 14px; font-weight: 800;
+          text-align: center; letter-spacing: 0.05em;
+        }
+        .route-stats {
+          display: flex; gap: 16px; justify-content: center;
+        }
+        .stat-item {
+          display: flex; align-items: center; gap: 6px;
+          background: rgba(255,255,255,0.05);
+          padding: 6px 12px; border-radius: 10px;
+        }
+        .stat-item.highlight {
+          background: rgba(0, 229, 160, 0.15);
+          border: 1px solid rgba(0, 229, 160, 0.4);
+        }
+        .stat-item .icon { font-size: 14px; }
+        .stat-item .val { font-size: 13px; font-weight: 700; color: #fff; }
+        .stat-item.highlight .val { color: #00E5A0; }
+      `}</style>
     </div>
   );
 }

@@ -16,6 +16,7 @@ import HeroBar from "@/components/dashboard/HeroBar";
 import SidePanel from "@/components/dashboard/SidePanel";
 import DestinationModal from "@/components/dashboard/DestinationModal";
 import Toast from "@/components/ui/Toast";
+import SkeletonDashboard from "@/components/dashboard/SkeletonDashboard";
 
 // ═══════════════════════════════════════════════════════════════════
 // 🗺️ CARTE INTERACTIVE
@@ -58,8 +59,11 @@ export default function Dashboard() {
 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [syntheticLoading, setSyntheticLoading] = useState(true);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [time, setTime] = useState(new Date());
   const [location, setLocation] = useState("Antananarivo");
+  const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
   const [congestionData, setCongestionData] = useState<CongestionPoint[]>(() => generateCongestionHistory());
   const [alerts, setAlerts] = useState<AlertItem[]>(ALERTS_INITIALES);
   const [zones] = useState<HotZone[]>(ZONES_CRITIQUES);
@@ -71,15 +75,16 @@ export default function Dashboard() {
   // ─── Auth ───
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) router.push("/login");
-      else { setUser(session.user as User); setLoading(false); }
+      if (session) setUser(session.user as User);
+      setLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (!session) router.push("/login");
-      else { setUser(session.user as User); setLoading(false); }
+      if (session) setUser(session.user as User);
+      else setUser(null);
+      setLoading(false);
     });
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, []);
 
   // ─── Horloge ───
   useEffect(() => {
@@ -87,11 +92,23 @@ export default function Dashboard() {
     return () => clearInterval(i);
   }, []);
 
+  // ─── Chargement Synthétique (Skeleton FB/Threads) ───
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSyntheticLoading(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // ─── Géoloc ───
   useEffect(() => {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => setLocation(resolveLocation(pos.coords.latitude, pos.coords.longitude)),
+      async (pos) => {
+        setUserCoords([pos.coords.latitude, pos.coords.longitude]);
+        const loc = await resolveLocation(pos.coords.latitude, pos.coords.longitude);
+        setLocation(loc);
+      },
       () => setLocation("Antananarivo"),
       { enableHighAccuracy: true }
     );
@@ -124,11 +141,27 @@ export default function Dashboard() {
 
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
-    router.push("/login");
-  }, [router]);
+    setUser(null);
+    setToast({ message: "Vous êtes déconnecté", type: "info" });
+  }, []);
 
   const handleDestConfirm = useCallback((destination: string, mode: string) => {
     setShowDestModal(false);
+    
+    // Simuler un trajet pour forcer la Map à le tracer
+    setSelectedTrajet({
+      id: Date.now(),
+      label: `Vers ${destination}`,
+      from: "CURRENT_LOCATION",
+      to: destination,
+      distance: "",
+      durationNormal: "",
+      durationCurrent: "",
+      icon: "🧭",
+      status: "dense",
+      transportType: mode as "voiture" | "taxibe" | "marche" | "mixte"
+    });
+
     setToast({ message: `🚀 ARIA calcule votre itinéraire vers ${destination}...`, type: "info" });
     setTimeout(() => {
       const modeText = mode === 'voiture' ? 'en voiture' : mode === 'taxibe' ? 'en taxi-be' : 'à pied';
@@ -138,6 +171,11 @@ export default function Dashboard() {
   }, [location, zones]);
 
   const handleSignalIncident = useCallback(() => {
+    if (!user) {
+      setToast({ message: "Veuillez vous connecter pour signaler un incident", type: "warning" });
+      setTimeout(() => router.push("/login"), 1500);
+      return;
+    }
     const newAlert: AlertItem = {
       id: Date.now(),
       type: Math.random() > 0.5 ? "accident" : "travaux",
@@ -153,43 +191,28 @@ export default function Dashboard() {
   }, [location, signalCount]);
 
   const handleTrajetSelect = useCallback((trajet: TrajetItem) => {
+    if (!user) {
+      setToast({ message: "Veuillez vous connecter pour utiliser vos trajets personnalisés", type: "warning" });
+      setTimeout(() => router.push("/login"), 1500);
+      return;
+    }
     setSelectedTrajet(trajet);
     setToast({ message: `Trajet chargé : ${trajet.label}`, type: "info" });
     const message = `ARIA, mon trajet : ${trajet.from} → ${trajet.to} (${trajet.distance}). Actuellement ${trajet.durationCurrent} vs ${trajet.durationNormal} normal. Comment optimiser ?`;
     window.dispatchEvent(new CustomEvent("aria-open", { detail: { message } }));
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: "100vh", background: COLORS.bg,
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", gap: 24,
-      }}>
-        <div style={{
-          width: 56, height: 56, borderRadius: "50%",
-          border: `3px solid ${COLORS.primary}20`,
-          borderTopColor: COLORS.primary,
-          animation: "spin 0.8s linear infinite",
-        }} />
-        <p style={{
-          color: "rgba(255,255,255,0.5)", fontSize: 13,
-          letterSpacing: "0.14em", fontWeight: 700,
-        }}>CHARGEMENT</p>
-        <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
+  if (loading || syntheticLoading) {
+    return <SkeletonDashboard theme={theme} />;
   }
 
-  if (!user) return null;
-  const displayName = user.email?.split("@")[0] ?? "Utilisateur";
+  const displayName = user?.email?.split("@")[0] ?? "Invité";
 
   return (
-    <div className="dashboard">
+    <div className={`dashboard-container ${theme === 'light' ? 'light-theme' : ''}`}>
       <style jsx global>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
           -webkit-font-smoothing: antialiased;
           background: ${COLORS.bg};
         }
@@ -201,7 +224,6 @@ export default function Dashboard() {
       `}</style>
 
       <style jsx>{`
-        .dashboard { min-height: 100vh; background: ${COLORS.bg}; color: #fff; }
         .main {
           display: grid;
           grid-template-columns: 2fr 1fr;
@@ -259,12 +281,14 @@ export default function Dashboard() {
           50% { opacity: 0.5; transform: scale(1.4); }
         }
       `}</style>
-
       <Topbar
         displayName={displayName}
         location={location}
         onLogout={handleLogout}
         time={time}
+        theme={theme}
+        onToggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+        isAuthenticated={!!user}
       />
 
       <HeroBar
@@ -289,7 +313,7 @@ export default function Dashboard() {
               {zones.filter(z => z.level >= 85).length} zones critiques
             </div>
           </div>
-          <MapWithNoSSR zones={zones} selectedTrajet={selectedTrajet} />
+          <MapWithNoSSR zones={zones} selectedTrajet={selectedTrajet} userCoords={userCoords} />
         </div>
 
         {/* PANNEAU LATÉRAL */}
@@ -317,6 +341,137 @@ export default function Dashboard() {
           onClose={() => setToast(null)}
         />
       )}
+
+      <style jsx global>{`
+        /* ── LIGHT THEME OVERRIDES ── */
+        .light-theme {
+          background: #F4F7FA !important;
+          color: #111 !important;
+        }
+        .light-theme header.topbar,
+        .light-theme aside.side-panel,
+        .light-theme .route-info-card,
+        .light-theme .modal,
+        .light-theme .map-badge {
+          background: rgba(255, 255, 255, 0.95) !important;
+          color: #111 !important;
+          border-color: rgba(0,0,0,0.08) !important;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
+        }
+        .light-theme .leaflet-layer,
+        .light-theme .leaflet-control-zoom-in,
+        .light-theme .leaflet-control-zoom-out,
+        .light-theme .leaflet-control-attribution {
+          filter: none !important;
+        }
+        .light-theme .brand,
+        .light-theme .title,
+        .light-theme .loc,
+        .light-theme .trajet-title,
+        .light-theme .route-dest,
+        .light-theme .stat-item .val,
+        .light-theme .stat b,
+        .light-theme .panel-title,
+        .light-theme .metric-val,
+        .light-theme .alert-title {
+          color: #111 !important;
+        }
+        .light-theme .time { color: #007A55 !important; }
+        .light-theme .center,
+        .light-theme .name,
+        .light-theme .trajet-desc,
+        .light-theme .label,
+        .light-theme .m-text,
+        .light-theme .stat,
+        .light-theme .alert-desc,
+        .light-theme .metric-label,
+        .light-theme .logout,
+        .light-theme .theme-toggle {
+          color: #111 !important;
+          font-weight: 500;
+        }
+        .light-theme .input,
+        .light-theme .mode,
+        .light-theme .chip,
+        .light-theme .stat-item {
+          background: #fff !important;
+          border-color: rgba(0,0,0,0.2) !important;
+          color: #111 !important;
+        }
+        .light-theme .chip.active,
+        .light-theme .mode.active {
+          background: rgba(0, 122, 85, 0.1) !important;
+          border-color: #007A55 !important;
+          color: #007A55 !important;
+        }
+        .light-theme .trajet-card {
+          background: #fff !important;
+          border-color: rgba(0,0,0,0.15) !important;
+        }
+        .light-theme .trajet-card:hover {
+          border-color: #007A55 !important;
+          background: rgba(0,122,85,0.03) !important;
+        }
+        .light-theme .close { color: #111 !important; background: rgba(0,0,0,0.05) !important; }
+        .light-theme .close:hover { background: #FF3D00 !important; color: #fff !important; }
+        .light-theme .map-wrap::before {
+          background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, transparent 100%) !important;
+        }
+        .light-theme .stat-item.highlight {
+          background: rgba(0, 122, 85, 0.1) !important;
+          border: 1px solid rgba(0, 122, 85, 0.4) !important;
+        }
+        .light-theme .stat-item.highlight .val {
+          color: #007A55 !important;
+        }
+        /* ── Dark Green & Dark Yellow Overrides ── */
+        .light-theme .brand b,
+        .light-theme .hl { color: #007A55 !important; }
+        
+        .light-theme .map-badge.primary .dot,
+        .light-theme .pulse,
+        .light-theme .dot:not(.warn) {
+          background: #007A55 !important;
+          box-shadow: 0 0 10px #007A55 !important;
+        }
+        .light-theme .cta-main,
+        .light-theme .avatar,
+        .light-theme .panel-icon {
+          background: #007A55 !important;
+          color: #fff !important;
+        }
+        .light-theme .live {
+          color: #B28200 !important;
+          border-color: rgba(178, 130, 0, 0.4) !important;
+          background: rgba(178, 130, 0, 0.1) !important;
+        }
+        .light-theme .cta-signal {
+          border-color: #B28200 !important;
+          color: #B28200 !important;
+        }
+        .light-theme .cta-signal:hover {
+          background: #B28200 !important;
+          color: #fff !important;
+        }
+        .light-theme .dot.warn,
+        .light-theme .map-badge.warn .dot {
+          background: #B28200 !important;
+          box-shadow: 0 0 10px rgba(178, 130, 0, 0.8) !important;
+        }
+        .light-theme .alert-icon {
+          background: rgba(178, 130, 0, 0.15) !important;
+          color: #B28200 !important;
+        }
+      `}</style>
+
+      <style jsx>{`
+        .dashboard-container {
+          display: flex; flex-direction: column; height: 100vh;
+          background: #050811; color: #fff; overflow: hidden;
+          transition: background 0.3s ease, color 0.3s ease;
+          position: relative;
+        }
+      `}</style>
     </div>
   );
 }

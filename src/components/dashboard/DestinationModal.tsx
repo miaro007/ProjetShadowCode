@@ -77,7 +77,7 @@ export default function DestinationModal({ onClose, onConfirm }: {
 
       <style jsx>{`
         .overlay {
-          position: fixed; inset: 0; z-index: 200;
+          position: fixed; inset: 0; z-index: 9999;
           background: rgba(0,0,0,0.8);
           backdrop-filter: blur(8px);
           display: flex; align-items: center; justify-content: center;

@@ -303,7 +303,7 @@ export default function AIAssistant() {
         title="Ouvrir ARIA"
         onClick={handleToggle}
         style={{
-          position: "fixed", bottom: 28, right: 28, zIndex: 1000,
+          position: "fixed", bottom: 28, right: 28, zIndex: 9999,
           width: 58, height: 58, borderRadius: "50%",
           background: "linear-gradient(135deg, #00D4A4, #0099ff)",
           border: "none", cursor: "pointer",
@@ -320,7 +320,7 @@ export default function AIAssistant() {
       {/* ── Panel chat ── */}
       {open && (
         <div style={{
-          position: "fixed", bottom: 100, right: 28, zIndex: 999,
+          position: "fixed", bottom: 100, right: 28, zIndex: 9998,
           width: 380, height: 560,
           background: "#0D1526",
           border: "1px solid rgba(0,212,164,0.2)",
