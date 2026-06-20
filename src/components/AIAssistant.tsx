@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
-  X, Send, Sparkles, Zap, Droplet, Phone,
-  TrendingUp, AlertCircle, CheckCircle, Loader
+  X, Send, Sparkles, AlertCircle, CheckCircle, Loader, Navigation, MapPin
 } from "lucide-react";
 
 // ─── Types ─────────────────────────────────────────────────────────
@@ -11,9 +10,8 @@ type Role = "user" | "assistant";
 type ActionStatus = "pending" | "success" | "error";
 
 interface Action {
-  type: "pay_bill" | "recharge" | "send_money" | "analyze";
+  type: "eviter_axe" | "trouver_taxi_be" | "signaler_bouchon";
   label: string;
-  amount?: string;
   target?: string;
   status: ActionStatus;
 }
@@ -27,39 +25,31 @@ interface Message {
   timestamp: Date;
 }
 
-// ─── User context ──────────────────────────────────────────────────
+// ─── Contexte Utilisateur : Spécifique Madagascar (Tana) ───────────
 const USER_CONTEXT = `
-Tu es ARIA, l'assistante IA autonome de l'application AfricaLife.
-Tu aides les utilisateurs africains à gérer leurs finances du quotidien.
+Tu es ARIA, l'assistante IA en temps réel experte du trafic et des transports à Antananarivo, Madagascar.
+Tu aides les citadins et les chauffeurs de Taxi-be à éviter les embouteillages monstres de la capitale.
 
-Contexte utilisateur actuel :
-- Solde : 50 000 FCFA
-- Transactions ce mois : 23
-- Économies : 15 000 FCFA
-- Facture d'eau en attente : 3 200 FCFA (due dans 4 jours)
-- Facture d'électricité payée le 12 juin : 8 500 FCFA
-- Dernière recharge mobile : 2 000 FCFA (il y a 3 jours)
-- Dépenses ce mois : Transport 12 000 FCFA, Eau 3 200 FCFA, Électricité 8 500 FCFA, Alimentation 22 000 FCFA
-- Tontine digitale : cotisation de 5 000 FCFA prévue vendredi
+Contexte actuel d'Antananarivo :
+- Points noirs saturés en ce moment : Rond-point Anosizato (bloqué par des camions), Pont d'Ampasika (circulation alternée difficile), Soarano (marchands de rue).
+- Axes fluides : Route des Hydrocarbures (Ankorondrano), Alarobia.
+- Coopératives majeures à disposition : Ligne 119 (Ankatso - Analakely - 67ha), Ligne 165 (Ankatso - Ivato), Ligne 194 (Itaosy - Analakely).
 
 Actions disponibles :
-1. PAYER_FACTURE : payer une facture (eau, électricité, internet)
-2. RECHARGER : recharger du crédit mobile
-3. ENVOYER_ARGENT : envoyer de l'argent à un contact
-4. ANALYSER : analyser les dépenses et donner des conseils
+1. EVITER_AXE : recalculer un itinéraire pour contourner un bouchon.
+2. TROUVER_TAXI_BE : proposer la meilleure ligne de Taxi-be pour un trajet fluide.
+3. SIGNALER_BOUCHON : enregistrer un signalement communautaire.
 
 Règles :
-- Réponds toujours en français, de façon concise et amicale
-- Si l'utilisateur veut effectuer une action, confirme d'abord avant d'exécuter
-- Donne des conseils proactifs basés sur le contexte financier
-- Propose toujours 2-3 suggestions de suivi courtes à la fin de chaque message
-- Format JSON strict pour les actions : {"action": "PAYER_FACTURE|RECHARGER|ENVOYER_ARGENT|ANALYSER", "label": "...", "amount": "...", "target": "..."}
-- Si tu exécutes une action, inclus le JSON entre balises <ACTION> et </ACTION>
-- Ne mets JAMAIS le JSON dans le texte visible
+- Réponds toujours en français, de façon concise, dynamique et chaleureuse.
+- Utilise occasionnellement des expressions amicales malgaches ("Manao ahoana", "Misaotra", "Podera e !").
+- Propose toujours 2-3 suggestions de suivi courtes à la fin de chaque message.
+- Format JSON strict pour les actions : {"action": "EVITER_AXE|TROUVER_TAXI_BE|SIGNALER_BOUCHON", "label": "...", "target": "..."}
+- Si tu proposes une action automatique, inclus le JSON entre balises <ACTION> et </ACTION>. Ne le mets jamais dans le texte visible.
 - Suggestions format : <SUGGESTIONS>suggestion1|suggestion2|suggestion3</SUGGESTIONS>
 `;
 
-// ─── Parse AI response ──────────────────────────────────────────────
+// ─── Parseur de réponses de l'IA ────────────────────────────────────
 function parseResponse(raw: string): { content: string; action?: Action; suggestions?: string[] } {
   let content = raw;
   let action: Action | undefined;
@@ -71,12 +61,10 @@ function parseResponse(raw: string): { content: string; action?: Action; suggest
       const parsed = JSON.parse(actionMatch[1].trim());
       action = {
         type:
-          parsed.action === "PAYER_FACTURE" ? "pay_bill"
-          : parsed.action === "RECHARGER" ? "recharge"
-          : parsed.action === "ENVOYER_ARGENT" ? "send_money"
-          : "analyze",
+          parsed.action === "EVITER_AXE" ? "eviter_axe"
+            : parsed.action === "TROUVER_TAXI_BE" ? "trouver_taxi_be"
+              : "signaler_bouchon",
         label: parsed.label,
-        amount: parsed.amount,
         target: parsed.target,
         status: "pending",
       };
@@ -95,21 +83,15 @@ function parseResponse(raw: string): { content: string; action?: Action; suggest
   return { content, action, suggestions };
 }
 
-// ─── Action Card ───────────────────────────────────────────────────
+// ─── Action Card Composant ──────────────────────────────────────────
 function ActionCard({ action, onConfirm }: { action: Action; onConfirm: () => void }) {
   const icons: Record<string, React.ReactNode> = {
-    pay_bill: <Droplet size={16} />,
-    recharge: <Phone size={16} />,
-    send_money: <Zap size={16} />,
-    analyze: <TrendingUp size={16} />,
+    eviter_axe: <Navigation size={16} />,
+    trouver_taxi_be: <MapPin size={16} />,
+    signaler_bouchon: <AlertCircle size={16} />,
   };
-  const colors: Record<string, string> = {
-    pay_bill: "56,189,248",
-    recharge: "167,139,250",
-    send_money: "0,212,164",
-    analyze: "245,158,11",
-  };
-  const accent = colors[action.type] ?? "0,212,164";
+  
+  const accent = action.type === "signaler_bouchon" ? "239,68,68" : "0,212,164";
 
   return (
     <div style={{
@@ -122,11 +104,6 @@ function ActionCard({ action, onConfirm }: { action: Action; onConfirm: () => vo
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
         <div style={{ color: `rgb(${accent})` }}>{icons[action.type]}</div>
         <span style={{ fontSize: "13px", fontWeight: 600, color: "#fff" }}>{action.label}</span>
-        {action.amount && (
-          <span style={{ marginLeft: "auto", fontSize: "13px", color: `rgb(${accent})`, fontWeight: 700 }}>
-            {action.amount}
-          </span>
-        )}
       </div>
 
       {action.status === "pending" && (
@@ -145,33 +122,28 @@ function ActionCard({ action, onConfirm }: { action: Action; onConfirm: () => vo
             display: "flex", alignItems: "center", justifyContent: "center", gap: "6px",
           }}
         >
-          <CheckCircle size={13} /> Confirmer et exécuter
+          <CheckCircle size={13} /> Activer l&apos;itinéraire alternatif
         </button>
       )}
       {action.status === "success" && (
         <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#00D4A4" }}>
-          <CheckCircle size={13} /> Action exécutée avec succès
-        </div>
-      )}
-      {action.status === "error" && (
-        <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#FF6B6B" }}>
-          <AlertCircle size={13} /> Échec — réessayez
+          <CheckCircle size={13} /> Trajet mis à jour sur la Map !
         </div>
       )}
     </div>
   );
 }
 
-// ─── Welcome message (défini en dehors du composant) ───────────────
+// ─── Message de Bienvenue (Tana) ───────────────────────────────────
 const WELCOME_MESSAGE: Message = {
   id: "welcome",
   role: "assistant",
-  content: "Bonjour ! Je suis ARIA, votre assistante IA AfricaLife 👋\n\nJe vois que vous avez une **facture d'eau de 3 200 FCFA** due dans 4 jours. Souhaitez-vous que je la règle maintenant ?",
-  suggestions: ["Payer ma facture d'eau", "Analyser mes dépenses", "Recharger mon mobile"],
+  content: "Manao ahoana ! Je suis ARIA, ton copilote info-trafic à Antananarivo 🚗💨\n\nAttention, le **Pont d'Anosizato** est complètement paralysé par des camions ce secteur est à éviter. Où vas-tu aujourd'hui ?",
+  suggestions: ["Éviter Anosizato", "Taxi-be pour aller à Ankatso", "Signaler un bouchon"],
   timestamp: new Date(),
 };
 
-// ─── Main Component ────────────────────────────────────────────────
+// ─── Composant Principal Réparé ─────────────────────────────────────
 export default function AIAssistant() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
@@ -181,12 +153,25 @@ export default function AIAssistant() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Écouteur d'événement global pour ouvrir Aria depuis la Map
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      const msg = e.detail?.message;
+      if (msg) {
+        setOpen(true);           
+        setInput(msg);           
+      }
+    };
+    window.addEventListener("aria-open", handler as EventListener);
+    return () => window.removeEventListener("aria-open", handler as EventListener);
+  }, []);
+
   // Auto-scroll vers le bas
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Envoi de message
+  // Fonction d'envoi de message
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || loading) return;
     setInput("");
@@ -241,7 +226,7 @@ export default function AIAssistant() {
       const errorMsg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: "Désolée, je rencontre un problème de connexion. Réessayez dans un instant.",
+        content: "Désolée, je rencontre un problème de connexion avec le serveur de trafic.",
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -250,13 +235,10 @@ export default function AIAssistant() {
     }
   }, [loading, messages]);
 
-  // Confirmation d'action
+  // Confirmation de l'action de guidage
   const confirmAction = useCallback((msgId: string) => {
     setMessages(prev => prev.map(m => {
       if (m.id !== msgId || !m.action) return m;
-
-      const actionLabel = m.action.label;
-      const actionAmount = m.action.amount;
 
       setTimeout(() => {
         setMessages(prev2 => prev2.map(m2 =>
@@ -268,12 +250,12 @@ export default function AIAssistant() {
         const confirmMsg: Message = {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: `✅ ${actionLabel} exécutée avec succès${actionAmount ? ` — **${actionAmount}** débité de votre solde` : ""}.`,
-          suggestions: ["Voir mon solde", "Autre action", "Merci ARIA"],
+          content: `🔄 **Itinéraire mis à jour sur votre carte.** J'ai calculé une déviation pour contourner le ralentissement. Misaotra !`,
+          suggestions: ["Merci Aria !", "Y a-t-il d'autres bouchons ?"],
           timestamp: new Date(),
         };
         setMessages(prev3 => [...prev3, confirmMsg]);
-      }, 1200);
+      }, 1000);
 
       return { ...m, action: { ...m.action, status: "pending" as ActionStatus } };
     }));
@@ -284,7 +266,6 @@ export default function AIAssistant() {
       .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
       .replace(/\n/g, "<br/>");
 
-  // Ouvrir/fermer le panel
   const handleToggle = () => {
     const next = !open;
     setOpen(next);
@@ -336,19 +317,6 @@ export default function AIAssistant() {
         {open ? <X size={22} color="#fff" /> : <Sparkles size={22} color="#fff" />}
       </button>
 
-      {/* ── Badge notification ── */}
-      {!open && (
-        <div style={{
-          position: "fixed", bottom: 76, right: 26, zIndex: 1001,
-          width: 18, height: 18, borderRadius: "50%",
-          background: "#F59E0B",
-          border: "2px solid #0A0F1E",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: "10px", fontWeight: 700, color: "#0A0F1E",
-          pointerEvents: "none",
-        }}>1</div>
-      )}
-
       {/* ── Panel chat ── */}
       {open && (
         <div style={{
@@ -385,7 +353,7 @@ export default function AIAssistant() {
                   width: 6, height: 6, borderRadius: "50%",
                   background: "#00D4A4", display: "inline-block",
                 }} />
-                IA Autonome · AfricaLife
+                Info-Trafic Tana · Live
               </div>
             </div>
             <button
@@ -401,7 +369,7 @@ export default function AIAssistant() {
             </button>
           </div>
 
-          {/* Messages */}
+          {/* Corps de la conversation */}
           <div style={{
             flex: 1, overflowY: "auto", padding: "16px",
             display: "flex", flexDirection: "column", gap: "12px",
@@ -442,7 +410,7 @@ export default function AIAssistant() {
                               key={s}
                               type="button"
                               title={s}
-                              onClick={() => sendMessage(s)}
+                              onClick={() => void sendMessage(s)}
                               style={{
                                 padding: "5px 10px",
                                 background: "rgba(0,212,164,0.08)",
@@ -473,7 +441,7 @@ export default function AIAssistant() {
               </div>
             ))}
 
-            {/* Typing indicator */}
+            {/* Indicateur de chargement IA */}
             {loading && (
               <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
                 <div style={{
@@ -503,7 +471,7 @@ export default function AIAssistant() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
+          {/* Formulaire d'envoi */}
           <div style={{
             padding: "12px 16px",
             borderTop: "1px solid rgba(255,255,255,0.06)",
@@ -520,7 +488,7 @@ export default function AIAssistant() {
                   void sendMessage(input);
                 }
               }}
-              placeholder="Demandez à ARIA…"
+              placeholder="Demandez un itinéraire à ARIA…"
               aria-label="Message à ARIA"
               style={{
                 flex: 1,

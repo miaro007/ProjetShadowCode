@@ -6,8 +6,9 @@ import { Footer } from "@/components/layout/footer"
 import { Toaster } from "@/components/ui/sonner"
 import { APP_NAME, APP_DESCRIPTION } from "@/config/constants"
 import { cn } from "@/lib/utils";
+import "leaflet/dist/leaflet.css";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 const inter = Inter({ subsets: ["latin"] })
 
