@@ -41,7 +41,7 @@ export function Navbar() {
                     <Link href={ROUTES.LOGIN}>Se connecter</Link>
                   </Button>
                   <Button asChild>
-                    <Link href={ROUTES.REGISTER}>Sinscrire</Link>
+                    <Link href={ROUTES.LOGIN}>inscrire</Link>
                   </Button>
                 </>
               )}

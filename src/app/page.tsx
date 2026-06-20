@@ -70,7 +70,7 @@ export default function Home() {
             Rejoignez des milliers d&apos;utilisateurs satisfaits
           </p>
           <Button size="lg" variant="secondary" asChild>
-            <Link href={ROUTES.REGISTER}>S&apos;inscrire gratuitement</Link>
+            <Link href={ROUTES.LOGIN}>S&apos;inscrire gratuitement</Link>
           </Button>
         </div>
       </section>
