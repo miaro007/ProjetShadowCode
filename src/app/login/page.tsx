@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { User } from '@/types'
+import { useRouter } from 'next/navigation'
 
 export default function TestAuth() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
@@ -36,22 +38,19 @@ export default function TestAuth() {
     }
   }
 
-  const handleSignIn = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+// Dans handleSignIn de ta page login
+const handleSignIn = async () => {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
 
-      if (error) throw error
-
-      setMessage(`✅ Connexion réussie ! ${data.user?.email}`)
-      setUser(data.user as User | null)
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue'
-      setMessage(`❌ Erreur : ${errorMessage}`)
-    }
+    setMessage(`✅ Connexion réussie !`);
+    router.push("/dashboard"); // ✅ Ajoute cette ligne
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
+    setMessage(`❌ Erreur : ${errorMessage}`);
   }
+};
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
