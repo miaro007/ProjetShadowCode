@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
-  X, Send, Sparkles, AlertCircle, CheckCircle, Loader, Navigation, MapPin
+  X, Send, Sparkles, AlertCircle, CheckCircle, Loader, Navigation, MapPin, Mic, Square, Volume2, VolumeX, Ear, EarOff
 } from "lucide-react";
 
 // ─── Types ─────────────────────────────────────────────────────────
@@ -27,8 +27,8 @@ interface Message {
 
 // ─── Contexte Utilisateur : Spécifique Madagascar (Tana) ───────────
 const USER_CONTEXT = `
-Tu es ARIA, l'assistante IA en temps réel experte du trafic et des transports à Antananarivo, Madagascar.
-Tu aides les citadins et les chauffeurs de Taxi-be à éviter les embouteillages monstres de la capitale.
+Tu es ARIA, l'assistante IA en temps réel experte du trafic, des transports et de toutes les fonctionnalités de l'application à Antananarivo, Madagascar.
+Tu as accès à TOUTES les données en temps réel : lignes de bus, arrêts, itinéraires, et alertes de la communauté. Tu connais tout sur l'application.
 
 Contexte actuel d'Antananarivo :
 - Points noirs saturés en ce moment : Rond-point Anosizato (bloqué par des camions), Pont d'Ampasika (circulation alternée difficile), Soarano (marchands de rue).
@@ -153,6 +153,147 @@ export default function AIAssistant() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+
+  // États pour la fonctionnalité vocale
+  const [isRecording, setIsRecording] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(true);
+  const [handsFree, setHandsFree] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  
+  // Refs pour l'accès dans les callbacks (TTS, VAD)
+  const handsFreeRef = useRef(handsFree);
+  const isRecordingRef = useRef(isRecording);
+  useEffect(() => { handsFreeRef.current = handsFree; }, [handsFree]);
+  useEffect(() => { isRecordingRef.current = isRecording; }, [isRecording]);
+
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+
+  // Synthèse vocale (TTS)
+  const speakText = useCallback((text: string) => {
+    if (!voiceMode || !("speechSynthesis" in window)) {
+      if (handsFreeRef.current) setTimeout(() => startRecording(), 500);
+      return;
+    }
+    window.speechSynthesis.cancel(); 
+    
+    const cleanText = text.replace(/[*_]/g, "").replace(/<[^>]+>/g, "").trim();
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = "fr-FR";
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    
+    utterance.onend = () => {
+      // Auto-restart si on est en mode mains-libres
+      if (handsFreeRef.current && !isRecordingRef.current) {
+        setTimeout(() => startRecording(), 500);
+      }
+    };
+    
+    window.speechSynthesis.speak(utterance);
+  }, [voiceMode]);
+
+  // Enregistrement vocal (STT) avec VAD
+  const startRecording = async () => {
+    if (isRecordingRef.current) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      // VAD (Voice Activity Detection) - Détection de silence
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = audioCtx;
+      const analyser = audioCtx.createAnalyser();
+      analyser.minDecibels = -70;
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      let hasSpoken = false;
+      let silenceStart = 0;
+
+      const checkSilence = () => {
+        if (!mediaRecorderRef.current || mediaRecorderRef.current.state !== "recording") return;
+        
+        analyser.getByteFrequencyData(dataArray);
+        const sum = dataArray.reduce((a, b) => a + b, 0);
+        const average = sum / dataArray.length;
+
+        if (average > 15) {
+          hasSpoken = true;
+          silenceStart = 0; // reset silence
+        } else if (hasSpoken) {
+          if (silenceStart === 0) silenceStart = Date.now();
+          else if (Date.now() - silenceStart > 1500) {
+            // 1.5s de silence -> on arrête
+            mediaRecorderRef.current.stop();
+            return;
+          }
+        }
+        animationFrameRef.current = requestAnimationFrame(checkSilence);
+      };
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+        if (audioContextRef.current && audioContextRef.current.state !== "closed") {
+          audioContextRef.current.close().catch(console.error);
+        }
+        
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        stream.getTracks().forEach(t => t.stop());
+        setIsRecording(false);
+        setLoading(true);
+
+        try {
+          const formData = new FormData();
+          formData.append("file", audioBlob, "audio.webm");
+
+          const res = await fetch("/api/aria/transcribe", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await res.json();
+          if (data.text) {
+            sendMessage(data.text);
+          } else if (handsFreeRef.current) {
+            // S'il n'y a pas eu de texte compris, relancer l'écoute en boucle
+            startRecording();
+          }
+        } catch (err) {
+          console.error("Erreur de transcription", err);
+          if (handsFreeRef.current) setTimeout(startRecording, 1000);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+      
+      // Démarrer la détection de silence
+      checkSilence();
+      
+    } catch (err) {
+      console.error("Impossible d'accéder au micro", err);
+      alert("Accès au microphone refusé. Le mode vocal ne peut pas fonctionner.");
+      setHandsFree(false);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
   // Écouteur d'événement global pour ouvrir Aria depuis la Map
   useEffect(() => {
     const handler = (e: CustomEvent) => {
@@ -165,6 +306,22 @@ export default function AIAssistant() {
     window.addEventListener("aria-open", handler as EventListener);
     return () => window.removeEventListener("aria-open", handler as EventListener);
   }, []);
+
+  // Obtenir la position GPS quand on ouvre Aria
+  useEffect(() => {
+    if (open && !userLocation && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (err) => console.log("Geolocation error:", err),
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    }
+  }, [open, userLocation]);
 
   // Auto-scroll vers le bas
   useEffect(() => {
@@ -198,6 +355,7 @@ export default function AIAssistant() {
         body: JSON.stringify({
           system: USER_CONTEXT,
           messages: history,
+          userLocation,
         }),
       });
 
@@ -222,6 +380,7 @@ export default function AIAssistant() {
       };
 
       setMessages(prev => [...prev, assistantMsg]);
+      speakText(content);
     } catch {
       const errorMsg: Message = {
         id: crypto.randomUUID(),
@@ -356,17 +515,56 @@ export default function AIAssistant() {
                 Info-Trafic Tana · Live
               </div>
             </div>
-            <button
-              type="button"
-              title="Fermer"
-              onClick={() => setOpen(false)}
-              style={{
-                marginLeft: "auto", background: "none", border: "none",
-                color: "rgba(255,255,255,0.3)", cursor: "pointer", padding: "4px",
-              }}
-            >
-              <X size={16} />
-            </button>
+            
+            <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+              <button
+                type="button"
+                title={handsFree ? "Désactiver Mains-libres" : "Activer Mains-libres"}
+                onClick={() => {
+                  const next = !handsFree;
+                  setHandsFree(next);
+                  if (next && !isRecording) startRecording();
+                  if (!next && isRecording) stopRecording();
+                }}
+                style={{
+                  background: handsFree ? "rgba(0, 212, 164, 0.2)" : "none", 
+                  border: "none",
+                  borderRadius: "8px",
+                  color: handsFree ? "#00D4A4" : "rgba(255,255,255,0.3)", 
+                  cursor: "pointer", padding: "4px 8px",
+                  display: "flex", alignItems: "center", gap: "6px",
+                  fontSize: "11px", fontWeight: 600
+                }}
+              >
+                {handsFree ? <Ear size={16} /> : <EarOff size={16} />}
+                {handsFree && "Mains-libres"}
+              </button>
+
+              <button
+                type="button"
+                title={voiceMode ? "Désactiver la voix" : "Activer la voix"}
+                onClick={() => setVoiceMode(!voiceMode)}
+                style={{
+                  background: "none", border: "none",
+                  color: voiceMode ? "#00D4A4" : "rgba(255,255,255,0.3)", 
+                  cursor: "pointer", padding: "4px",
+                }}
+              >
+                {voiceMode ? <Volume2 size={16} /> : <VolumeX size={16} />}
+              </button>
+              
+              <button
+                type="button"
+                title="Fermer"
+                onClick={() => setOpen(false)}
+                style={{
+                  background: "none", border: "none",
+                  color: "rgba(255,255,255,0.3)", cursor: "pointer", padding: "4px",
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
 
           {/* Corps de la conversation */}
@@ -501,6 +699,25 @@ export default function AIAssistant() {
                 outline: "none",
               }}
             />
+            
+            <button
+              type="button"
+              title={isRecording ? "Arrêter l'enregistrement" : "Parler à ARIA"}
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={loading}
+              style={{
+                width: 38, height: 38, borderRadius: "10px",
+                background: isRecording ? "rgba(239, 68, 68, 0.2)" : "rgba(255,255,255,0.06)",
+                border: isRecording ? "1px solid #ef4444" : "none",
+                color: isRecording ? "#ef4444" : "rgba(255,255,255,0.6)",
+                cursor: loading ? "default" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all 0.2s", flexShrink: 0,
+              }}
+            >
+              {isRecording ? <Square size={15} fill="#ef4444" /> : <Mic size={15} />}
+            </button>
+
             <button
               type="button"
               title="Envoyer"

@@ -1,321 +1,756 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer } from "recharts";
+import { useState, useRef, useCallback } from "react";
 import { COLORS } from "@/lib/dashboard-data";
-import { CongestionPoint, AlertItem, TrajetItem } from "@/types/dashboard";
-import { timeAgo, alertIcon } from "@/utils/dashboard";
 
-type Tab = "chart" | "alerts" | "trajets";
+// ═══════════════════════════════════════════════════════════════════
+// 🏆 SIDEPANEL – 5 Fonctionnalités Phares Hackathon
+// ═══════════════════════════════════════════════════════════════════
 
-export default function SidePanel({ congestionData, alerts, trajets, onTrajetSelect }: {
-  congestionData: CongestionPoint[];
-  alerts: AlertItem[];
-  trajets: TrajetItem[];
-  onTrajetSelect: (t: TrajetItem) => void;
+type Tab = "multimodal" | "vocal" | "meteo" | "confiance" | "escape";
+
+// ── Données Sortie de Secours ──
+const ESCAPE_CONGESTION_DATA = [
+  { km: 0, level: 20, label: "Votre position" },
+  { km: 0.3, level: 45, label: "" },
+  { km: 0.6, level: 72, label: "" },
+  { km: 1.0, level: 95, label: "Zone rouge" },
+  { km: 1.4, level: 98, label: "" },
+  { km: 1.8, level: 92, label: "" },
+  { km: 2.2, level: 85, label: "Fin zone rouge" },
+  { km: 2.6, level: 40, label: "" },
+  { km: 3.0, level: 15, label: "Axe fluide" },
+];
+
+const ESCAPE_STEPS = [
+  { icon: "🚨", action: "Descendre", detail: "Prochain arrêt dans 150m (Anosizato Marché)", color: "#FF3D00" },
+  { icon: "🚶", action: "Marcher 800m", detail: "Vers l'axe parallèle via Rue Razafindrakoto", color: "#FFB800" },
+  { icon: "🚌", action: "Prendre Ligne 194", detail: "Axe fluide → Analakely en 12 min", color: "#00E5A0" },
+];
+
+// ── Données Mockées ──
+const ITINERARY_STEPS = [
+  { type: "taxibe", label: "Ligne 140", from: "Ivandry", to: "Anosizato", duration: "12 min", status: "dense", icon: "🚌" },
+  { type: "walk", label: "Mandeha tongotra", from: "Anosizato", to: "Pont Ampasika", duration: "8 min (800m)", status: "ok", icon: "🚶" },
+  { type: "taxibe", label: "Ligne 194", from: "Pont Ampasika", to: "Analakely", duration: "9 min", status: "fluide", icon: "🚌" },
+];
+
+const PREDICTIONS = [
+  { jour: "Vendredi (demain)", heure: "15h–19h", niveau: 95, label: "SATURÉ", detail: "Fin de mois fonctionnaires + pluie probable" },
+  { jour: "Lundi matin", heure: "07h–09h", niveau: 75, label: "DENSE", detail: "Rentrée scolaire + marché Anosibe" },
+  { jour: "Mercredi soir", heure: "17h–19h", niveau: 55, label: "MODÉRÉ", detail: "Trafic normal" },
+];
+
+const LIGNES = [
+  { num: "140", trajet: "Ivandry → Analakely", fiabilite: 87, votes: 214, etat: "fluide", color: "#00E5A0" },
+  { num: "194", trajet: "Ampasika → Soarano", fiabilite: 62, votes: 98, etat: "dense", color: "#FFB800" },
+  { num: "167", trajet: "Anosizato → 67ha", fiabilite: 31, votes: 47, etat: "critique", color: "#FF3D00" },
+  { num: "119", trajet: "Ambohipo → Analakely", fiabilite: 79, votes: 133, etat: "fluide", color: "#00E5A0" },
+];
+
+export default function SidePanel({ onSignalIncident }: {
+  onSignalIncident?: () => void;
 }) {
-  const [tab, setTab] = useState<Tab>("chart");
-  const latest = congestionData[congestionData.length - 1];
+  const [tab, setTab] = useState<Tab>("multimodal");
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcription, setTranscription] = useState("");
+  const [recordingStatus, setRecordingStatus] = useState<"idle" | "recording" | "processing" | "done">("idle");
+  const [votes, setVotes] = useState<Record<string, "up" | "down" | null>>({});
+  const [escapeActive, setEscapeActive] = useState(false);
+  const [escapeAnalyzing, setEscapeAnalyzing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
-  const sortedAlerts = useMemo(() =>
-    [...alerts].sort((a, b) => {
-      const order = { critique: 0, élevé: 1, modéré: 2, info: 3 };
-      return order[a.severity] - order[b.severity];
-    }), [alerts]);
+  // ── Enregistrement Vocal ──
+  const startRecording = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => chunksRef.current.push(e.data);
+      mr.onstop = () => {
+        setRecordingStatus("processing");
+        setTimeout(() => {
+          setTranscription("Gros embouteillage à Ampasika, ça ne bouge plus !");
+          setRecordingStatus("done");
+        }, 1500);
+      };
+      mediaRecorderRef.current = mr;
+      mr.start();
+      setIsRecording(true);
+      setRecordingStatus("recording");
+    } catch {
+      setTranscription("Microphone non disponible.");
+      setRecordingStatus("done");
+    }
+  }, []);
+
+  const stopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+  }, []);
+
+  const handleVote = (ligneNum: string, dir: "up" | "down") => {
+    setVotes(prev => ({ ...prev, [ligneNum]: prev[ligneNum] === dir ? null : dir }));
+  };
+
+  const triggerEscapeAnalysis = useCallback(() => {
+    setEscapeAnalyzing(true);
+    setEscapeActive(false);
+    setTimeout(() => {
+      setEscapeAnalyzing(false);
+      setEscapeActive(true);
+    }, 2000);
+  }, []);
+
+  const TABS: { id: Tab; icon: string; label: string }[] = [
+    { id: "multimodal", icon: "🔀", label: "Itinéraire" },
+    { id: "vocal", icon: "🎙️", label: "Vocal" },
+    { id: "meteo", icon: "🔮", label: "Prédiction" },
+    { id: "confiance", icon: "⭐", label: "Confiance" },
+    { id: "escape", icon: "🚨", label: "Secours" },
+  ];
 
   return (
-    <div className="panel">
+    <aside className="panel">
       {/* Onglets */}
       <div className="tabs">
-        <button
-          className={`tab ${tab === "chart" ? "active" : ""}`}
-          onClick={() => setTab("chart")}
-        >
-          <span>📊</span> Trafic
-        </button>
-        <button
-          className={`tab ${tab === "alerts" ? "active" : ""}`}
-          onClick={() => setTab("alerts")}
-        >
-          <span>📡</span> Alertes
-          <span className="badge">{alerts.length}</span>
-        </button>
-        <button
-          className={`tab ${tab === "trajets" ? "active" : ""}`}
-          onClick={() => setTab("trajets")}
-        >
-          <span>🗺️</span> Trajets
-        </button>
+        {TABS.map(t => (
+          <button
+            key={t.id}
+            className={`tab ${tab === t.id ? "active" : ""}`}
+            onClick={() => setTab(t.id)}
+          >
+            <span className="tab-icon">{t.icon}</span>
+            <span className="tab-label">{t.label}</span>
+          </button>
+        ))}
       </div>
 
-      {/* Contenu */}
-      <div className="content">
-        {tab === "chart" && (
-          <div className="chart-tab">
-            <div className="big-number">
-              <div className="big-value">{latest?.vehicules.toLocaleString()}</div>
-              <div className="big-label">véhicules en circulation</div>
-            </div>
-
-            <div className="metrics">
-              <div className="metric">
-                <div className="m-val warn">{latest?.vitesse} <span>km/h</span></div>
-                <div className="m-lab">Vitesse moy.</div>
-              </div>
-              <div className="metric">
-                <div className="m-val">{Math.min(100, Math.round((latest?.vehicules || 0) / 10))}<span>/100</span></div>
-                <div className="m-lab">Stress</div>
-              </div>
-              <div className="metric">
-                <div className="m-val">{latest?.vehicules > 500 ? "19h" : "Now"}</div>
-                <div className="m-lab">Départ</div>
-              </div>
-            </div>
-
-            <div className="chart-wrap">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={congestionData} margin={{ top: 10, right: 8, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={COLORS.primary} stopOpacity={0.4} />
-                      <stop offset="100%" stopColor={COLORS.primary} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                  <XAxis dataKey="time" tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10 }} tickLine={false} axisLine={false} interval={5} />
-                  <YAxis tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10 }} tickLine={false} axisLine={false} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "rgba(10,14,26,0.95)",
-                      border: `1px solid ${COLORS.primary}40`,
-                      borderRadius: 10, fontSize: 12,
-                    }}
-                    itemStyle={{ color: COLORS.primary, fontWeight: 700 }}
-                  />
-                  <ReferenceLine y={600} stroke={COLORS.warn} strokeDasharray="4 4" strokeOpacity={0.5} />
-                  <Area type="monotone" dataKey="vehicules" stroke={COLORS.primary} strokeWidth={2.5} fill="url(#grad)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+      {/* ── 1. ITINÉRAIRE MULTIMODAL ── */}
+      {tab === "multimodal" && (
+        <div className="content">
+          <div className="section-header">
+            <h2 className="section-title">🔀 Itinéraire Multimodal</h2>
+            <span className="section-sub">Taxi-be + Marche à pied optimisés</span>
           </div>
-        )}
 
-        {tab === "alerts" && (
-          <div className="alerts-tab">
-            {sortedAlerts.map(a => (
-              <div key={a.id} className={`alert sev-${a.severity}`}>
-                <div className="a-icon">{alertIcon(a.type)}</div>
-                <div className="a-body">
-                  <div className="a-head">
-                    <span className="a-zone">{a.zone}</span>
-                    <span className={`a-sev sev-${a.severity}`}>{a.severity}</span>
+          <div className="alert-banner">
+            <span>⚠️</span>
+            <span>Bouchon détecté à <b>Anosizato</b>. Itinéraire alternatif calculé par ARIA.</span>
+          </div>
+
+          <div className="steps">
+            {ITINERARY_STEPS.map((step, i) => (
+              <div key={i} className="step">
+                <div className="step-icon-wrap">
+                  <div className="step-icon">{step.icon}</div>
+                  {i < ITINERARY_STEPS.length - 1 && <div className="step-line" />}
+                </div>
+                <div className="step-body">
+                  <div className="step-top">
+                    <span className="step-label">{step.label}</span>
+                    <span className={`step-badge ${step.status}`}>{step.status}</span>
                   </div>
-                  <div className="a-msg">{a.message}</div>
-                  <div className="a-meta">
-                    <span>⏱ {timeAgo(a.timestamp)}</span>
-                    {a.confirmations > 0 && <span>· ✓ {a.confirmations}</span>}
-                  </div>
+                  <div className="step-route">{step.from} → {step.to}</div>
+                  <div className="step-duration">⏱ {step.duration}</div>
                 </div>
               </div>
             ))}
           </div>
-        )}
 
-        {tab === "trajets" && (
-          <div className="trajets-tab">
-            {trajets.map(t => (
-              <button key={t.id} className={`trajet st-${t.status}`} onClick={() => onTrajetSelect(t)}>
-                <div className="t-icon">{t.icon}</div>
-                <div className="t-body">
-                  <div className="t-label">{t.label}</div>
-                  <div className="t-route">{t.from} → {t.to} · {t.distance}</div>
-                  {t.savings && <div className="t-savings">⚡ {t.savings}</div>}
-                </div>
-                <div className="t-time">
-                  <div className="t-current">{t.durationCurrent}</div>
-                  <div className="t-normal">vs {t.durationNormal}</div>
-                </div>
+          <div className="total-bar">
+            <span>⏱ Durée totale estimée</span>
+            <strong>29 min</strong>
+          </div>
+
+          <button className="cta-btn" onClick={() => window.dispatchEvent(new CustomEvent("aria-open", { detail: { message: "ARIA, donne-moi le meilleur itinéraire multimodal depuis Ivandry vers Analakely en combinant Taxi-be et marche à pied. Il y a un bouchon à Anosizato." } }))}>
+            🤖 Demander à ARIA
+          </button>
+        </div>
+      )}
+
+      {/* ── 2. SIGNALEMENT VOCAL ── */}
+      {tab === "vocal" && (
+        <div className="content">
+          <div className="section-header">
+            <h2 className="section-title">🎙️ Signalement Vocal</h2>
+            <span className="section-sub">Parlez en malgache ou français</span>
+          </div>
+
+          <div className="voice-center">
+            <button
+              className={`mic-btn ${isRecording ? "recording" : ""}`}
+              onPointerDown={startRecording}
+              onPointerUp={stopRecording}
+            >
+              <div className="mic-icon">{isRecording ? "⏹" : "🎙️"}</div>
+              <span className="mic-label">
+                {isRecording ? "Relâcher pour envoyer" : "Maintenir pour parler"}
+              </span>
+            </button>
+            {isRecording && (
+              <div className="waves">
+                <div className="wave" /><div className="wave" /><div className="wave" />
+              </div>
+            )}
+          </div>
+
+          <div className="examples">
+            <p className="example-title">💬 Exemples :</p>
+            <p className="example">&ldquo;Gros bouchon à Anosizato, ça ne bouge plus !&rdquo;</p>
+            <p className="example">&ldquo;Misy hery be eto Ampasika.&rdquo;</p>
+          </div>
+
+          {recordingStatus === "processing" && (
+            <div className="processing">
+              <div className="spinner-sm" /> ARIA analyse votre message…
+            </div>
+          )}
+
+          {recordingStatus === "done" && transcription && (
+            <div className="transcription-box">
+              <div className="trans-label">✅ Transcription ARIA</div>
+              <div className="trans-text">&ldquo;{transcription}&rdquo;</div>
+              <button className="confirm-btn" onClick={() => { setTranscription(""); setRecordingStatus("idle"); onSignalIncident?.(); }}>
+                Confirmer et envoyer
               </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── 3. MÉTÉO DU TRAFIC ── */}
+      {tab === "meteo" && (
+        <div className="content">
+          <div className="section-header">
+            <h2 className="section-title">🔮 Météo du Trafic</h2>
+            <span className="section-sub">Prédictions intelligentes d&apos;ARIA</span>
+          </div>
+
+          <div className="aria-prediction">
+            <div className="aria-avatar">🤖</div>
+            <div className="aria-bubble">
+              Demain est un <b>vendredi de fin de mois</b>. Le trafic vers le centre-ville sera saturé dès <b>15h</b>. Je recommande d&apos;anticiper ton départ à <b>14h</b> ou de choisir la voie via Ambohipo.
+            </div>
+          </div>
+
+          <div className="predictions">
+            {PREDICTIONS.map((p, i) => (
+              <div key={i} className="pred-card">
+                <div className="pred-top">
+                  <div>
+                    <div className="pred-jour">{p.jour}</div>
+                    <div className="pred-heure">{p.heure}</div>
+                  </div>
+                  <div className={`pred-badge niveau-${p.niveau >= 80 ? 'high' : p.niveau >= 50 ? 'mid' : 'low'}`}>
+                    {p.label}
+                  </div>
+                </div>
+                <div className="pred-bar-wrap">
+                  <div className="pred-bar" style={{ width: `${p.niveau}%`, background: p.niveau >= 80 ? '#FF3D00' : p.niveau >= 50 ? '#FFB800' : '#00E5A0' }} />
+                </div>
+                <div className="pred-detail">📍 {p.detail}</div>
+              </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* ── 4. STATUT DE CONFIANCE ── */}
+      {tab === "confiance" && (
+        <div className="content">
+          <div className="section-header">
+            <h2 className="section-title">⭐ Fiabilité des Lignes</h2>
+            <span className="section-sub">Votes communautaires en temps réel</span>
+          </div>
+
+          <div className="lignes">
+            {LIGNES.map((l) => (
+              <div key={l.num} className="ligne-card">
+                <div className="ligne-top">
+                  <div className="ligne-num" style={{ background: `${l.color}20`, color: l.color }}>
+                    L. {l.num}
+                  </div>
+                  <div className="ligne-info">
+                    <div className="ligne-trajet">{l.trajet}</div>
+                    <div className="ligne-votes">{l.votes} votes</div>
+                  </div>
+                  <div className={`ligne-etat etat-${l.etat}`}>{l.etat}</div>
+                </div>
+                <div className="trust-bar-wrap">
+                  <div className="trust-bar" style={{ width: `${l.fiabilite}%`, background: l.color }} />
+                </div>
+                <div className="vote-row">
+                  <span className="trust-pct" style={{ color: l.color }}>{l.fiabilite}% fiable</span>
+                  <div className="vote-btns">
+                    <button
+                      className={`vote-btn up ${votes[l.num] === "up" ? "active" : ""}`}
+                      onClick={() => handleVote(l.num, "up")}
+                    >👍</button>
+                    <button
+                      className={`vote-btn down ${votes[l.num] === "down" ? "active" : ""}`}
+                      onClick={() => handleVote(l.num, "down")}
+                    >👎</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 5. SORTIE DE SECOURS ── */}
+      {tab === "escape" && (
+        <div className="content">
+          <div className="section-header">
+            <h2 className="section-title">🚨 Sortie de Secours</h2>
+            <span className="section-sub">Analyse GPS en temps réel par ARIA</span>
+          </div>
+
+          {!escapeActive && !escapeAnalyzing && (
+            <div className="escape-intro">
+              <div className="escape-intro-icon">🛑</div>
+              <p>Coincé dans un embouteillage&nbsp;? ARIA analyse votre position GPS et les rapports communautaires pour vous proposer une <b>sortie de secours immédiate</b>.</p>
+              <button className="escape-scan-btn" onClick={triggerEscapeAnalysis}>
+                📡 Analyser ma position
+              </button>
+            </div>
+          )}
+
+          {escapeAnalyzing && (
+            <div className="escape-analyzing">
+              <div className="radar-wrap">
+                <div className="radar" />
+                <div className="radar-dot" />
+              </div>
+              <p>ARIA scanne les axes autour de vous…</p>
+              <div className="scan-bars">
+                <div className="scan-bar" style={{animationDelay: '0s'}} />
+                <div className="scan-bar" style={{animationDelay: '0.2s'}} />
+                <div className="scan-bar" style={{animationDelay: '0.4s'}} />
+                <div className="scan-bar" style={{animationDelay: '0.6s'}} />
+                <div className="scan-bar" style={{animationDelay: '0.8s'}} />
+              </div>
+            </div>
+          )}
+
+          {escapeActive && (
+            <>
+              <div className="escape-alert">
+                <span className="escape-alert-icon">⚠️</span>
+                <div>
+                  <strong>Blocage détecté — 2.2 km sur votre axe</strong>
+                  <p>Temps d&apos;attente estimé : <b style={{color: '#FF3D00'}}>~45 min</b></p>
+                </div>
+              </div>
+
+              {/* Graphique de congestion */}
+              <div className="congestion-graph">
+                <div className="graph-title">Congestion sur votre axe</div>
+                <div className="graph-bars">
+                  {ESCAPE_CONGESTION_DATA.map((d, i) => (
+                    <div key={i} className="graph-col">
+                      <div
+                        className="graph-bar"
+                        style={{
+                          height: `${d.level}%`,
+                          background: d.level >= 80 ? '#FF3D00' : d.level >= 50 ? '#FFB800' : '#00E5A0',
+                          animationDelay: `${i * 0.08}s`,
+                        }}
+                      />
+                      <span className="graph-km">{d.km}km</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="graph-legend">
+                  <span className="leg"><span className="leg-dot" style={{background:'#00E5A0'}} /> Fluide</span>
+                  <span className="leg"><span className="leg-dot" style={{background:'#FFB800'}} /> Dense</span>
+                  <span className="leg"><span className="leg-dot" style={{background:'#FF3D00'}} /> Bloqué</span>
+                </div>
+              </div>
+
+              {/* ARIA recommendation */}
+              <div className="aria-prediction">
+                <div className="aria-avatar">🤖</div>
+                <div className="aria-bubble">
+                  Le bus est bloqué pour au moins <b>45 minutes</b>. Je vous conseille de <b>descendre au prochain arrêt</b> (à 150m) et de marcher jusqu&apos;à l&apos;axe parallèle pour prendre la <b>ligne 194</b> qui roule parfaitement.
+                </div>
+              </div>
+
+              {/* Escape steps */}
+              <div className="escape-steps">
+                {ESCAPE_STEPS.map((s, i) => (
+                  <div key={i} className="escape-step">
+                    <div className="escape-step-num" style={{background: `${s.color}20`, color: s.color}}>
+                      {i + 1}
+                    </div>
+                    <div className="escape-step-body">
+                      <div className="escape-step-action">
+                        <span>{s.icon}</span> {s.action}
+                      </div>
+                      <div className="escape-step-detail">{s.detail}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="total-bar">
+                <span>⏱ Gain estimé</span>
+                <strong style={{color: '#00E5A0'}}>33 min gagnées</strong>
+              </div>
+
+              <button className="cta-btn" onClick={() => window.dispatchEvent(new CustomEvent("aria-open", { detail: { message: "ARIA, mon bus est bloqué à Anosizato depuis 10 min. Analyse ma position GPS et donne-moi la sortie de secours la plus rapide. Quel arrêt descendre, quelle route à pied, et quel autre bus prendre ?" } }))}>
+                🤖 Détailler avec ARIA
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       <style jsx>{`
         .panel {
+          display: flex; flex-direction: column;
           background: rgba(255,255,255,0.025);
           border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 20px;
-          display: flex; flex-direction: column;
-          height: 100%; overflow: hidden;
+          border-radius: 22px;
+          overflow: hidden;
+          height: 100%;
         }
 
+        /* ── TABS ── */
         .tabs {
-          display: flex;
-          padding: 8px;
-          gap: 6px;
+          display: grid; grid-template-columns: repeat(5, 1fr);
           border-bottom: 1px solid rgba(255,255,255,0.06);
+          flex-shrink: 0;
         }
         .tab {
-          flex: 1;
-          background: transparent;
-          color: rgba(255,255,255,0.5);
-          padding: 12px 8px;
-          font-size: 13px; font-weight: 700;
-          cursor: pointer;
-          border-radius: 12px;
-          display: flex; align-items: center; justify-content: center;
-          gap: 6px;
-          transition: all .2s;
-          position: relative;
+          display: flex; flex-direction: column; align-items: center;
+          gap: 3px; padding: 10px 4px;
+          font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.35);
+          cursor: pointer; transition: all .2s;
+          letter-spacing: 0.02em;
+          border-bottom: 2px solid transparent;
         }
-        .tab:hover { color: #fff; background: rgba(255,255,255,0.03); }
+        .tab-icon { font-size: 16px; }
+        .tab-label { font-size: 9px; }
+        .tab:hover { color: rgba(255,255,255,0.7); }
         .tab.active {
-          background: ${COLORS.primary};
-          color: ${COLORS.bg};
-        }
-        .badge {
-          background: ${COLORS.warn};
-          color: ${COLORS.bg};
-          font-size: 10px; font-weight: 900;
-          padding: 2px 7px; border-radius: 999px;
-        }
-        .tab.active .badge { background: ${COLORS.bg}; color: ${COLORS.warn}; }
-
-        .content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
-
-        /* ─── CHART TAB ─── */
-        .chart-tab { padding: 20px; display: flex; flex-direction: column; gap: 16px; height: 100%; }
-        .big-number { text-align: center; }
-        .big-value {
-          font-size: 44px; font-weight: 900;
           color: ${COLORS.primary};
-          font-family: 'SF Mono', monospace;
-          letter-spacing: -0.03em;
-          line-height: 1;
+          border-bottom-color: ${COLORS.primary};
+          background: rgba(0,229,160,0.04);
         }
-        .big-label {
-          font-size: 11px; color: rgba(255,255,255,0.4);
-          text-transform: uppercase; letter-spacing: 0.1em;
-          margin-top: 6px; font-weight: 600;
+
+        /* ── CONTENT ── */
+        .content {
+          flex: 1; overflow-y: auto;
+          padding: 16px;
+          display: flex; flex-direction: column; gap: 12px;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255,255,255,0.1) transparent;
         }
-        .metrics {
-          display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+
+        .section-header { display: flex; flex-direction: column; gap: 2px; }
+        .section-title { font-size: 14px; font-weight: 800; color: #fff; }
+        .section-sub { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+        /* ── MULTIMODAL ── */
+        .alert-banner {
+          display: flex; gap: 8px; align-items: flex-start;
+          background: rgba(255,184,0,0.08);
+          border: 1px solid rgba(255,184,0,0.25);
+          border-radius: 10px; padding: 10px 12px;
+          font-size: 12px; color: ${COLORS.warn};
         }
-        .metric {
+        .steps { display: flex; flex-direction: column; }
+        .step { display: flex; gap: 12px; }
+        .step-icon-wrap { display: flex; flex-direction: column; align-items: center; }
+        .step-icon {
+          width: 36px; height: 36px; border-radius: 50%;
+          background: rgba(255,255,255,0.06);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 16px; flex-shrink: 0;
+        }
+        .step-line { flex: 1; width: 2px; background: rgba(255,255,255,0.07); min-height: 16px; margin: 4px 0; }
+        .step-body { flex: 1; padding-bottom: 16px; }
+        .step-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .step-label { font-size: 13px; font-weight: 700; color: #fff; }
+        .step-badge {
+          font-size: 10px; font-weight: 700; padding: 2px 8px;
+          border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .step-badge.fluide { background: rgba(0,229,160,0.12); color: ${COLORS.primary}; }
+        .step-badge.dense { background: rgba(255,184,0,0.12); color: ${COLORS.warn}; }
+        .step-badge.ok { background: rgba(0,229,160,0.12); color: ${COLORS.primary}; }
+        .step-route { font-size: 11px; color: rgba(255,255,255,0.45); }
+        .step-duration { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+        .total-bar {
+          display: flex; justify-content: space-between; align-items: center;
+          background: rgba(0,229,160,0.07); border: 1px solid rgba(0,229,160,0.2);
+          border-radius: 10px; padding: 10px 14px;
+          font-size: 13px; color: rgba(255,255,255,0.7);
+        }
+        .total-bar strong { color: ${COLORS.primary}; font-size: 16px; font-weight: 800; }
+        .cta-btn {
+          background: ${COLORS.primary}; color: #0A0E1A;
+          border-radius: 12px; padding: 12px; width: 100%;
+          font-size: 13px; font-weight: 800; cursor: pointer;
+          transition: all .2s; letter-spacing: 0.02em;
+        }
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,229,160,0.3); }
+
+        /* ── VOCAL ── */
+        .voice-center { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .mic-btn {
+          width: 88px; height: 88px; border-radius: 50%;
+          background: rgba(0,229,160,0.08);
+          border: 2px solid rgba(0,229,160,0.3);
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          cursor: pointer; transition: all .2s; gap: 4px;
+          user-select: none;
+        }
+        .mic-btn.recording {
+          background: rgba(255,61,0,0.15);
+          border-color: #FF3D00;
+          animation: mic-pulse 0.8s infinite;
+        }
+        @keyframes mic-pulse {
+          0%,100% { box-shadow: 0 0 0 0 rgba(255,61,0,0.3); }
+          50% { box-shadow: 0 0 0 12px rgba(255,61,0,0); }
+        }
+        .mic-icon { font-size: 28px; }
+        .mic-label { font-size: 9px; color: rgba(255,255,255,0.4); font-weight: 700; text-align: center; }
+        .waves { display: flex; gap: 6px; align-items: center; height: 24px; }
+        .wave {
+          width: 4px; background: ${COLORS.primary}; border-radius: 2px;
+          animation: wave-anim 0.6s infinite ease-in-out alternate;
+        }
+        .wave:nth-child(1) { height: 12px; animation-delay: 0s; }
+        .wave:nth-child(2) { height: 22px; animation-delay: 0.2s; }
+        .wave:nth-child(3) { height: 14px; animation-delay: 0.4s; }
+        @keyframes wave-anim { to { height: 24px; } }
+        .examples { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 12px; }
+        .example-title { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 6px; }
+        .example { font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 4px; font-style: italic; }
+        .processing {
+          display: flex; align-items: center; gap: 10px;
+          font-size: 12px; color: rgba(255,255,255,0.5);
+        }
+        .spinner-sm {
+          width: 16px; height: 16px; border-radius: 50%;
+          border: 2px solid rgba(0,229,160,0.2);
+          border-top-color: ${COLORS.primary};
+          animation: spin .7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .transcription-box {
+          background: rgba(0,229,160,0.06);
+          border: 1px solid rgba(0,229,160,0.2);
+          border-radius: 12px; padding: 14px;
+        }
+        .trans-label { font-size: 11px; color: ${COLORS.primary}; font-weight: 700; margin-bottom: 6px; }
+        .trans-text { font-size: 13px; color: #fff; margin-bottom: 12px; font-style: italic; }
+        .confirm-btn {
+          background: ${COLORS.primary}; color: #0A0E1A;
+          border-radius: 8px; padding: 8px 16px;
+          font-size: 12px; font-weight: 800; cursor: pointer; width: 100%;
+          transition: all .2s;
+        }
+        .confirm-btn:hover { opacity: 0.85; }
+
+        /* ── MÉTÉO TRAFIC ── */
+        .aria-prediction {
+          display: flex; gap: 10px;
+          background: rgba(0,229,160,0.05);
+          border: 1px solid rgba(0,229,160,0.15);
+          border-radius: 12px; padding: 12px;
+        }
+        .aria-avatar {
+          width: 32px; height: 32px; border-radius: 50%;
+          background: rgba(0,229,160,0.15);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 16px; flex-shrink: 0;
+        }
+        .aria-bubble { font-size: 12px; color: rgba(255,255,255,0.75); line-height: 1.55; }
+        .aria-bubble b { color: ${COLORS.primary}; }
+        .predictions { display: flex; flex-direction: column; gap: 10px; }
+        .pred-card {
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 12px;
-          padding: 12px 8px;
-          text-align: center;
+          border-radius: 12px; padding: 12px;
         }
-        .m-val {
-          font-size: 18px; font-weight: 800;
-          color: ${COLORS.primary};
-          font-family: 'SF Mono', monospace;
+        .pred-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .pred-jour { font-size: 12px; font-weight: 700; color: #fff; }
+        .pred-heure { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+        .pred-badge {
+          font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px; letter-spacing: 0.05em;
         }
-        .m-val.warn { color: ${COLORS.warn}; }
-        .m-val span { font-size: 11px; opacity: 0.6; font-weight: 600; }
-        .m-lab {
-          font-size: 10px; color: rgba(255,255,255,0.45);
-          text-transform: uppercase; letter-spacing: 0.06em;
-          margin-top: 4px;
+        .pred-badge.niveau-high { background: rgba(255,61,0,0.15); color: #FF3D00; }
+        .pred-badge.niveau-mid { background: rgba(255,184,0,0.15); color: ${COLORS.warn}; }
+        .pred-badge.niveau-low { background: rgba(0,229,160,0.15); color: ${COLORS.primary}; }
+        .pred-bar-wrap {
+          height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; margin-bottom: 8px; overflow: hidden;
         }
-        .chart-wrap { flex: 1; min-height: 180px; }
+        .pred-bar { height: 100%; border-radius: 2px; transition: width .5s ease; }
+        .pred-detail { font-size: 11px; color: rgba(255,255,255,0.4); }
 
-        /* ─── ALERTS TAB ─── */
-        .alerts-tab {
-          padding: 14px;
-          overflow-y: auto;
-          display: flex; flex-direction: column; gap: 8px;
-        }
-        .alert {
-          background: rgba(255,255,255,0.025);
+        /* ── CONFIANCE LIGNES ── */
+        .lignes { display: flex; flex-direction: column; gap: 10px; }
+        .ligne-card {
+          background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 12px;
-          padding: 12px;
-          display: flex; gap: 11px;
-          cursor: pointer;
-          transition: all .2s;
+          border-radius: 12px; padding: 12px;
+          transition: border-color .2s;
         }
-        .alert:hover { background: rgba(255,255,255,0.05); transform: translateX(3px); }
-        .alert.sev-critique { border-left: 3px solid ${COLORS.warn}; background: rgba(255,184,0,0.06); }
-        .alert.sev-élevé { border-left: 3px solid ${COLORS.warn}; }
-        .alert.sev-info { border-left: 3px solid ${COLORS.primary}; background: rgba(0,229,160,0.05); }
-        .a-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
-        .a-body { flex: 1; min-width: 0; }
-        .a-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-        .a-zone { font-size: 12px; font-weight: 700; color: #fff; }
-        .a-sev {
-          font-size: 9px; font-weight: 800;
-          padding: 2px 7px; border-radius: 999px;
-          text-transform: uppercase; letter-spacing: 0.04em;
+        .ligne-card:hover { border-color: rgba(255,255,255,0.12); }
+        .ligne-top { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; }
+        .ligne-num {
+          padding: 4px 10px; border-radius: 8px;
+          font-size: 13px; font-weight: 900; white-space: nowrap; flex-shrink: 0;
         }
-        .a-sev.sev-critique, .a-sev.sev-élevé {
-          background: rgba(255,184,0,0.18); color: ${COLORS.warn};
-          border: 1px solid rgba(255,184,0,0.35);
+        .ligne-info { flex: 1; }
+        .ligne-trajet { font-size: 12px; font-weight: 600; color: #fff; }
+        .ligne-votes { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+        .ligne-etat { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+        .etat-fluide { background: rgba(0,229,160,0.12); color: ${COLORS.primary}; }
+        .etat-dense { background: rgba(255,184,0,0.12); color: ${COLORS.warn}; }
+        .etat-critique { background: rgba(255,61,0,0.12); color: #FF3D00; }
+        .trust-bar-wrap {
+          height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; margin-bottom: 8px; overflow: hidden;
         }
-        .a-sev.sev-modéré {
-          background: rgba(255,184,0,0.1); color: ${COLORS.warn};
+        .trust-bar { height: 100%; border-radius: 2px; transition: width .5s ease; }
+        .vote-row { display: flex; justify-content: space-between; align-items: center; }
+        .trust-pct { font-size: 11px; font-weight: 700; }
+        .vote-btns { display: flex; gap: 6px; }
+        .vote-btn {
+          width: 30px; height: 30px; border-radius: 8px;
+          background: rgba(255,255,255,0.05);
+          font-size: 14px; cursor: pointer; transition: all .2s;
+          display: flex; align-items: center; justify-content: center;
         }
-        .a-sev.sev-info {
-          background: rgba(0,229,160,0.15); color: ${COLORS.primary};
-          border: 1px solid rgba(0,229,160,0.3);
+        .vote-btn.up.active { background: rgba(0,229,160,0.15); }
+        .vote-btn.down.active { background: rgba(255,61,0,0.15); }
+        .vote-btn:hover { transform: scale(1.15); }
+
+        /* ── ESCAPE ROUTE ── */
+        .escape-intro {
+          text-align: center;
+          background: rgba(255,61,0,0.05);
+          border: 1px solid rgba(255,61,0,0.15);
+          border-radius: 14px; padding: 20px;
         }
-        .a-msg {
-          font-size: 12px; color: rgba(255,255,255,0.65);
-          line-height: 1.5; margin-bottom: 6px;
+        .escape-intro-icon { font-size: 40px; margin-bottom: 10px; }
+        .escape-intro p { font-size: 12px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 14px; }
+        .escape-intro b { color: #FF3D00; }
+        .escape-scan-btn {
+          background: #FF3D00; color: #fff;
+          border-radius: 12px; padding: 12px 20px;
+          font-size: 13px; font-weight: 800; cursor: pointer;
+          transition: all .2s; letter-spacing: 0.02em;
+          animation: scan-glow 2s infinite;
         }
-        .a-meta {
-          font-size: 10px; color: rgba(255,255,255,0.4);
-          display: flex; gap: 6px;
+        .escape-scan-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,61,0,0.4); }
+        @keyframes scan-glow {
+          0%,100% { box-shadow: 0 0 0 0 rgba(255,61,0,0.3); }
+          50% { box-shadow: 0 0 0 10px rgba(255,61,0,0); }
         }
 
-        /* ─── TRAJETS TAB ─── */
-        .trajets-tab {
-          padding: 14px;
-          overflow-y: auto;
-          display: flex; flex-direction: column; gap: 8px;
+        .escape-analyzing {
+          text-align: center; padding: 20px 0;
+          display: flex; flex-direction: column; align-items: center; gap: 14px;
         }
-        .trajet {
-          background: rgba(255,255,255,0.025);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 12px;
-          padding: 12px;
-          display: flex; align-items: center; gap: 12px;
-          cursor: pointer;
-          transition: all .25s;
-          text-align: left;
-          width: 100%;
+        .escape-analyzing p { font-size: 12px; color: rgba(255,255,255,0.5); }
+        .radar-wrap { width: 80px; height: 80px; position: relative; }
+        .radar {
+          width: 100%; height: 100%; border-radius: 50%;
+          border: 2px solid rgba(255,61,0,0.2);
+          position: relative;
         }
-        .trajet:hover {
-          background: rgba(0,229,160,0.06);
-          border-color: ${COLORS.primary}40;
-          transform: translateY(-2px);
+        .radar::after {
+          content: ''; position: absolute; top: 50%; left: 50%;
+          width: 50%; height: 2px; background: linear-gradient(90deg, #FF3D00, transparent);
+          transform-origin: left center;
+          animation: radar-sweep 1.5s linear infinite;
         }
-        .trajet.st-bloqué { border-left: 3px solid ${COLORS.warn}; }
-        .trajet.st-dense { border-left: 3px solid ${COLORS.warn}; opacity: 0.95; }
-        .trajet.st-fluide { border-left: 3px solid ${COLORS.primary}; }
-        .t-icon { font-size: 22px; flex-shrink: 0; }
-        .t-body { flex: 1; min-width: 0; }
-        .t-label { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 3px; }
-        .t-route { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
-        .t-savings {
-          font-size: 10px; color: ${COLORS.primary};
-          background: rgba(0,229,160,0.1);
-          padding: 3px 8px; border-radius: 999px;
-          display: inline-block;
-          border: 1px solid rgba(0,229,160,0.25);
-          font-weight: 700;
+        @keyframes radar-sweep { to { transform: rotate(360deg); } }
+        .radar-dot {
+          width: 6px; height: 6px; border-radius: 50%; background: #FF3D00;
+          position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+          box-shadow: 0 0 10px #FF3D00;
         }
-        .t-time { text-align: right; flex-shrink: 0; }
-        .t-current {
-          font-size: 16px; font-weight: 800;
-          font-family: 'SF Mono', monospace;
-          color: ${COLORS.primary};
+        .scan-bars {
+          display: flex; gap: 4px; align-items: flex-end; height: 20px;
         }
-        .t-normal { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 2px; }
+        .scan-bar {
+          width: 4px; background: #FF3D00; border-radius: 2px;
+          animation: scan-wave 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes scan-wave {
+          from { height: 6px; opacity: 0.3; }
+          to { height: 20px; opacity: 1; }
+        }
+
+        .escape-alert {
+          display: flex; gap: 10px; align-items: flex-start;
+          background: rgba(255,61,0,0.08);
+          border: 1px solid rgba(255,61,0,0.3);
+          border-radius: 12px; padding: 12px;
+          animation: alert-flash 2s ease-in-out infinite;
+        }
+        @keyframes alert-flash {
+          0%,100% { border-color: rgba(255,61,0,0.3); }
+          50% { border-color: rgba(255,61,0,0.6); }
+        }
+        .escape-alert-icon { font-size: 22px; }
+        .escape-alert strong { font-size: 12px; color: #FF3D00; display: block; margin-bottom: 4px; }
+        .escape-alert p { font-size: 11px; color: rgba(255,255,255,0.6); margin: 0; }
+
+        /* Congestion Graph */
+        .congestion-graph {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 12px; padding: 12px;
+        }
+        .graph-title { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .graph-bars {
+          display: flex; gap: 4px; align-items: flex-end; height: 80px;
+        }
+        .graph-col {
+          flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+          height: 100%; justify-content: flex-end;
+        }
+        .graph-bar {
+          width: 100%; border-radius: 3px 3px 0 0;
+          animation: bar-grow 0.6s ease-out forwards;
+          transform-origin: bottom;
+        }
+        @keyframes bar-grow {
+          from { transform: scaleY(0); }
+          to { transform: scaleY(1); }
+        }
+        .graph-km { font-size: 8px; color: rgba(255,255,255,0.3); }
+        .graph-legend {
+          display: flex; gap: 12px; margin-top: 8px; justify-content: center;
+        }
+        .leg { font-size: 9px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 4px; }
+        .leg-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+        .escape-steps { display: flex; flex-direction: column; gap: 8px; }
+        .escape-step {
+          display: flex; gap: 10px; align-items: flex-start;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 10px; padding: 10px;
+        }
+        .escape-step-num {
+          width: 28px; height: 28px; border-radius: 8px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 13px; font-weight: 900; flex-shrink: 0;
+        }
+        .escape-step-body { flex: 1; }
+        .escape-step-action { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+        .escape-step-detail { font-size: 11px; color: rgba(255,255,255,0.45); }
       `}</style>
-    </div>
+    </aside>
   );
 }

@@ -318,10 +318,7 @@ export default function Dashboard() {
 
         {/* PANNEAU LATÉRAL */}
         <SidePanel
-          congestionData={congestionData}
-          alerts={alerts}
-          trajets={TRAJETS_QUOTIDIENS}
-          onTrajetSelect={handleTrajetSelect}
+          onSignalIncident={handleSignalIncident}
         />
       </div>
 
