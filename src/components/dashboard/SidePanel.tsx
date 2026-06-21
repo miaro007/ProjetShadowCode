@@ -130,10 +130,10 @@ const ESCAPE_STEPS = [
 function IconBus({ color = "currentColor", size = 16 }: { color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="1" y="3" width="15" height="13" rx="2"/>
-      <path d="M16 8h4l3 3v5h-7V8z"/>
-      <circle cx="5.5" cy="18.5" r="2.5"/>
-      <circle cx="18.5" cy="18.5" r="2.5"/>
+      <rect x="1" y="3" width="15" height="13" rx="2" />
+      <path d="M16 8h4l3 3v5h-7V8z" />
+      <circle cx="5.5" cy="18.5" r="2.5" />
+      <circle cx="18.5" cy="18.5" r="2.5" />
     </svg>
   );
 }
@@ -141,10 +141,10 @@ function IconBus({ color = "currentColor", size = 16 }: { color?: string; size?:
 function IconWalk({ color = "currentColor", size = 16 }: { color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="13" cy="4" r="2"/>
-      <path d="m13 10-3 3 2 5-4 2"/>
-      <path d="m13 10 2 3 4-2"/>
-      <path d="m9 20 2-3"/>
+      <circle cx="13" cy="4" r="2" />
+      <path d="m13 10-3 3 2 5-4 2" />
+      <path d="m13 10 2 3 4-2" />
+      <path d="m9 20 2-3" />
     </svg>
   );
 }
@@ -152,10 +152,10 @@ function IconWalk({ color = "currentColor", size = 16 }: { color?: string; size?
 function IconMic({ color = "currentColor", size = 24 }: { color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
-      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-      <line x1="12" y1="19" x2="12" y2="23"/>
-      <line x1="8" y1="23" x2="16" y2="23"/>
+      <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+      <line x1="12" y1="19" x2="12" y2="23" />
+      <line x1="8" y1="23" x2="16" y2="23" />
     </svg>
   );
 }
@@ -163,7 +163,7 @@ function IconMic({ color = "currentColor", size = 24 }: { color?: string; size?:
 function IconStop({ color = "currentColor", size = 20 }: { color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke="none">
-      <rect x="5" y="5" width="14" height="14" rx="2"/>
+      <rect x="5" y="5" width="14" height="14" rx="2" />
     </svg>
   );
 }
@@ -171,8 +171,8 @@ function IconStop({ color = "currentColor", size = 20 }: { color?: string; size?
 function IconThumbUp({ color = "currentColor", size = 14 }: { color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/>
-      <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>
+      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" />
+      <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
     </svg>
   );
 }
@@ -180,8 +180,8 @@ function IconThumbUp({ color = "currentColor", size = 14 }: { color?: string; si
 function IconThumbDown({ color = "currentColor", size = 14 }: { color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/>
-      <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/>
+      <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z" />
+      <path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" />
     </svg>
   );
 }
@@ -189,9 +189,9 @@ function IconThumbDown({ color = "currentColor", size = 14 }: { color?: string; 
 function IconAlert({ color = "currentColor", size = 16 }: { color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-      <line x1="12" y1="9" x2="12" y2="13"/>
-      <line x1="12" y1="17" x2="12.01" y2="17"/>
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
     </svg>
   );
 }
@@ -199,9 +199,9 @@ function IconAlert({ color = "currentColor", size = 16 }: { color?: string; size
 function IconRoute({ color = "currentColor", size = 14 }: { color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="6" cy="19" r="3"/>
-      <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/>
-      <circle cx="18" cy="5" r="3"/>
+      <circle cx="6" cy="19" r="3" />
+      <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
+      <circle cx="18" cy="5" r="3" />
     </svg>
   );
 }
@@ -209,7 +209,7 @@ function IconRoute({ color = "currentColor", size = 14 }: { color?: string; size
 function IconRadar({ color = "currentColor", size = 14 }: { color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
     </svg>
   );
 }
@@ -217,7 +217,7 @@ function IconRadar({ color = "currentColor", size = 14 }: { color?: string; size
 function IconStar({ color = "currentColor", size = 14 }: { color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
     </svg>
   );
 }
@@ -225,8 +225,8 @@ function IconStar({ color = "currentColor", size = 14 }: { color?: string; size?
 function IconEscape({ color = "currentColor", size = 14 }: { color?: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
     </svg>
   );
 }
@@ -234,9 +234,9 @@ function IconEscape({ color = "currentColor", size = 14 }: { color?: string; siz
 function IconAriaAI({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" fill="rgba(0,229,160,0.12)" stroke="#00E5A0" strokeWidth="1.5"/>
-      <circle cx="12" cy="12" r="4" fill="#00E5A0"/>
-      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#00E5A0" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+      <circle cx="12" cy="12" r="10" fill="rgba(0,229,160,0.12)" stroke="#00E5A0" strokeWidth="1.5" />
+      <circle cx="12" cy="12" r="4" fill="#00E5A0" />
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#00E5A0" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
     </svg>
   );
 }
@@ -265,12 +265,8 @@ function LiveBadge({ lastUpdate }: { lastUpdate: Date }) {
 // ═══════════════════════════════════════════════════════════════════
 export default function SidePanel({
   onSignalIncident,
-  simulationMode = false,
-  onToggleSimulation
 }: {
   onSignalIncident?: () => void;
-  simulationMode?: boolean;
-  onToggleSimulation?: () => void;
 }) {
   const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>("multimodal");
@@ -415,24 +411,14 @@ export default function SidePanel({
 
   const TABS: { id: Tab; icon: React.ReactNode; label: string }[] = [
     { id: "multimodal", icon: <IconRoute />, label: "Itinéraire" },
-    { id: "vocal",      icon: <IconMic size={14} />, label: "Vocal" },
-    { id: "meteo",      icon: <IconRadar />, label: "Prédiction" },
-    { id: "confiance",  icon: <IconStar />, label: "Confiance" },
-    { id: "escape",     icon: <IconEscape />, label: "Secours" },
+    { id: "vocal", icon: <IconMic size={14} />, label: "Vocal" },
+    { id: "meteo", icon: <IconRadar />, label: "Prédiction" },
+    { id: "confiance", icon: <IconStar />, label: "Confiance" },
+    { id: "escape", icon: <IconEscape />, label: "Secours" },
   ];
 
   return (
     <aside className="panel">
-      {/* Simulation toggle */}
-      <div style={{ padding: "12px 14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <button
-          onClick={onToggleSimulation}
-          className={`sim-btn ${simulationMode ? "active" : ""}`}
-        >
-          {simulationMode ? "Arrêter la simulation" : "Lancer la simulation"}
-        </button>
-      </div>
-
       {/* Onglets */}
       <div className="tabs">
         {TABS.map(tData => (
@@ -757,54 +743,6 @@ export default function SidePanel({
           height: 100%;
         }
 
-        /* ── SIMULATION BTN ── */
-        .sim-btn {
-          width: 100%; padding: 10px 14px;
-          border-radius: 10px;
-          background: rgba(255,255,255,0.04);
-          color: rgba(255,255,255,0.65);
-          font-size: 12px; font-weight: 700;
-          cursor: pointer; transition: all 0.2s;
-          border: 1px solid rgba(255,255,255,0.08);
-          text-transform: uppercase; letter-spacing: 0.06em;
-        }
-        .sim-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
-        .sim-btn.active {
-          background: rgba(0,229,160,0.1);
-          border-color: rgba(0,229,160,0.4);
-          color: #00E5A0;
-          animation: pulse-sim 2.2s infinite;
-        }
-        @keyframes pulse-sim {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,160,0.15); }
-          50% { box-shadow: 0 0 0 6px rgba(0,229,160,0); }
-        }
-
-        /* ── LIVE BADGE ── */
-        .live-badge {
-          display: flex; align-items: center; gap: 6px;
-          background: rgba(255,61,0,0.07);
-          border: 1px solid rgba(255,61,0,0.2);
-          border-radius: 999px;
-          padding: 4px 12px;
-          font-size: 10px; font-weight: 800;
-          width: fit-content;
-        }
-        .live-dot {
-          width: 6px; height: 6px; border-radius: 50%;
-          background: #FF3D00;
-          box-shadow: 0 0 5px #FF3D00;
-          animation: live-blink 1.2s infinite;
-        }
-        @keyframes live-blink {
-          0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
-        }
-        .live-text { color: #FF3D00; letter-spacing: 0.1em; }
-        .live-ago { color: rgba(255,255,255,0.3); font-weight: 500; }
-
-        /* ── REALTIME ── */
-        .realtime-value { transition: all 0.4s ease; }
-
         /* ── TABS ── */
         .tabs {
           display: grid; grid-template-columns: repeat(5, 1fr);
@@ -844,6 +782,31 @@ export default function SidePanel({
         .section-header { display: flex; flex-direction: column; gap: 2px; }
         .section-title { font-size: 14px; font-weight: 800; color: #fff; margin: 0; }
         .section-sub { font-size: 11px; color: rgba(255,255,255,0.38); }
+
+        /* ── LIVE BADGE ── */
+        .live-badge {
+          display: flex; align-items: center; gap: 6px;
+          background: rgba(255,61,0,0.07);
+          border: 1px solid rgba(255,61,0,0.2);
+          border-radius: 999px;
+          padding: 4px 12px;
+          font-size: 10px; font-weight: 800;
+          width: fit-content;
+        }
+        .live-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: #FF3D00;
+          box-shadow: 0 0 5px #FF3D00;
+          animation: live-blink 1.2s infinite;
+        }
+        @keyframes live-blink {
+          0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+        }
+        .live-text { color: #FF3D00; letter-spacing: 0.1em; }
+        .live-ago { color: rgba(255,255,255,0.3); font-weight: 500; }
+
+        /* ── REALTIME ── */
+        .realtime-value { transition: all 0.4s ease; }
 
         /* ── ALERT BANNER ── */
         .alert-banner {
@@ -1150,13 +1113,6 @@ export default function SidePanel({
           background: rgba(245,247,250,0.95);
           border-color: rgba(0,0,0,0.08);
         }
-        .light-theme .sim-btn {
-          background: rgba(0,0,0,0.04);
-          border-color: rgba(0,0,0,0.08);
-          color: rgba(0,0,0,0.65);
-        }
-        .light-theme .sim-btn:hover { background: rgba(0,0,0,0.07); color: #0A0E1A; }
-        .light-theme .sim-btn.active { background: rgba(0,122,85,0.08); border-color: rgba(0,122,85,0.35); color: #007A55; }
         .light-theme .tabs { border-bottom-color: rgba(0,0,0,0.07); }
         .light-theme .tab { color: rgba(0,0,0,0.3); }
         .light-theme .tab:hover { color: rgba(0,0,0,0.6); }
