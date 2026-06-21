@@ -36,6 +36,20 @@ Tes 4 missions principales :
 3. Prédire : anticiper le trafic futur (ex: "Un ralentissement est attendu à 17h").
 4. Optimiser : recommander la meilleure heure de départ et le meilleur moyen de transport (ex: "Je recommande de partir dans 15 min via le Taxi-be 119").
 
+Commandes vocales de contrôle :
+- "ferme aria" ou "ferme-toi" ou "au revoir" : ferme l'interface
+- "arrête de parler" ou "stop" : désactive la synthèse vocale
+- "active le son" ou "parle" : active la synthèse vocale
+- "mains libres" : active le mode mains-libres
+- "désactive mains libres" : désactive le mode mains-libres
+
+Quand tu détectes une commande de contrôle, réponds avec une balise spéciale :
+<COMMAND>CLOSE_ARIA</COMMAND> pour fermer
+<COMMAND>MUTE_VOICE</COMMAND> pour couper le son
+<COMMAND>ENABLE_VOICE</COMMAND> pour activer le son
+<COMMAND>HANDS_FREE_ON</COMMAND> pour activer mains-libres
+<COMMAND>HANDS_FREE_OFF</COMMAND> pour désactiver mains-libres
+
 Règles strictes :
 - Ne te contente jamais de donner une information passive (ex: "Il y a un bouchon"). Propose TOUJOURS une solution (ex: "Je recommande de passer par Ivandry").
 - Analyse le contexte (GPS, heure, météo, signalements) automatiquement pour faire tes recommandations.
@@ -46,10 +60,26 @@ Règles strictes :
 `;
 
 // ─── Parseur de réponses de l'IA ────────────────────────────────────
-function parseResponse(raw: string): { content: string; action?: Action; suggestions?: string[] } {
+function parseResponse(raw: string): {
+  content: string;
+  action?: Action;
+  suggestions?: string[];
+  command?: "CLOSE_ARIA" | "MUTE_VOICE" | "ENABLE_VOICE" | "HANDS_FREE_ON" | "HANDS_FREE_OFF";
+} {
   let content = raw;
   let action: Action | undefined;
   let suggestions: string[] | undefined;
+  let command: "CLOSE_ARIA" | "MUTE_VOICE" | "ENABLE_VOICE" | "HANDS_FREE_ON" | "HANDS_FREE_OFF" | undefined;
+
+  // Détecter les commandes de contrôle
+  const commandMatch = raw.match(/<COMMAND>(.*?)<\/COMMAND>/);
+  if (commandMatch) {
+    const cmd = commandMatch[1].trim();
+    if (["CLOSE_ARIA", "MUTE_VOICE", "ENABLE_VOICE", "HANDS_FREE_ON", "HANDS_FREE_OFF"].includes(cmd)) {
+      command = cmd as any;
+    }
+    content = content.replace(/<COMMAND>[\s\S]*?<\/COMMAND>/g, "").trim();
+  }
 
   const actionMatch = raw.match(/<ACTION>([\s\S]*?)<\/ACTION>/);
   if (actionMatch) {
@@ -76,7 +106,7 @@ function parseResponse(raw: string): { content: string; action?: Action; suggest
     content = content.replace(/<SUGGESTIONS>[\s\S]*?<\/SUGGESTIONS>/g, "").trim();
   }
 
-  return { content, action, suggestions };
+  return { content, action, suggestions, command };
 }
 
 // ─── Action Card Composant ──────────────────────────────────────────
@@ -86,7 +116,7 @@ function ActionCard({ action, onConfirm }: { action: Action; onConfirm: () => vo
     trouver_taxi_be: <MapPin size={16} />,
     signaler_bouchon: <AlertCircle size={16} />,
   };
-  
+
   const accent = action.type === "signaler_bouchon" ? "239,68,68" : "0,212,164";
 
   return (
@@ -161,8 +191,8 @@ function buildWelcomeMessage(displayName?: string, location?: string, criticalZo
   const suggestions = isRushMorning
     ? ["Itinéraire vers Analakely", "Quel taxi-be prendre ?", "Éviter Anosizato"]
     : isRushEvening
-    ? ["Rentrer à la maison", "Heure de départ optimale ?", "Itinéraire alternatif"]
-    : ["Itinéraire vers Analakely", "Prédictions trafic de 17h", "Signaler un problème"];
+      ? ["Rentrer à la maison", "Heure de départ optimale ?", "Itinéraire alternatif"]
+      : ["Itinéraire vers Analakely", "Prédictions trafic de 17h", "Signaler un problème"];
 
   return {
     id: "welcome",
@@ -191,7 +221,7 @@ export default function AIAssistant({
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
 
   // États pour la fonctionnalité vocale
   const [isRecording, setIsRecording] = useState(false);
@@ -199,39 +229,40 @@ export default function AIAssistant({
   const [handsFree, setHandsFree] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  
+
   // Refs pour l'accès dans les callbacks (TTS, VAD)
   const handsFreeRef = useRef(handsFree);
   const isRecordingRef = useRef(isRecording);
+  const voiceModeRef = useRef(voiceMode);
   useEffect(() => { handsFreeRef.current = handsFree; }, [handsFree]);
   useEffect(() => { isRecordingRef.current = isRecording; }, [isRecording]);
+  useEffect(() => { voiceModeRef.current = voiceMode; }, [voiceMode]);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
   // Synthèse vocale (TTS)
   const speakText = useCallback((text: string) => {
-    if (!voiceMode || !("speechSynthesis" in window)) {
+    if (!voiceModeRef.current || !("speechSynthesis" in window)) {
       if (handsFreeRef.current) setTimeout(() => startRecording(), 500);
       return;
     }
-    window.speechSynthesis.cancel(); 
-    
+    window.speechSynthesis.cancel();
+
     const cleanText = text.replace(/[*_]/g, "").replace(/<[^>]+>/g, "").trim();
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = "fr-FR";
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
-    
+
     utterance.onend = () => {
-      // Auto-restart si on est en mode mains-libres
       if (handsFreeRef.current && !isRecordingRef.current) {
         setTimeout(() => startRecording(), 500);
       }
     };
-    
+
     window.speechSynthesis.speak(utterance);
-  }, [voiceMode]);
+  }, []);
 
   // Enregistrement vocal (STT) avec VAD
   const startRecording = async () => {
@@ -241,7 +272,7 @@ export default function AIAssistant({
       const recorder = new MediaRecorder(stream);
       audioChunksRef.current = [];
 
-      // VAD (Voice Activity Detection) - Détection de silence
+      // VAD (Voice Activity Detection)
       const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       audioContextRef.current = audioCtx;
       const analyser = audioCtx.createAnalyser();
@@ -255,25 +286,24 @@ export default function AIAssistant({
 
       const checkSilence = () => {
         if (!mediaRecorderRef.current || mediaRecorderRef.current.state !== "recording") return;
-        
+
         analyser.getByteFrequencyData(dataArray);
         const sum = dataArray.reduce((a, b) => a + b, 0);
         const average = sum / dataArray.length;
 
         if (average > 15) {
           hasSpoken = true;
-          silenceStart = 0; // reset silence
+          silenceStart = 0;
         } else if (hasSpoken) {
           if (silenceStart === 0) silenceStart = Date.now();
           else if (Date.now() - silenceStart > 1500) {
-            // 1.5s de silence -> on arrête
             mediaRecorderRef.current.stop();
             return;
           }
         }
         animationFrameRef.current = requestAnimationFrame(checkSilence);
       };
-      
+
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
@@ -283,7 +313,7 @@ export default function AIAssistant({
         if (audioContextRef.current && audioContextRef.current.state !== "closed") {
           audioContextRef.current.close().catch(console.error);
         }
-        
+
         const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
         stream.getTracks().forEach(t => t.stop());
         setIsRecording(false);
@@ -301,7 +331,6 @@ export default function AIAssistant({
           if (data.text) {
             sendMessage(data.text);
           } else if (handsFreeRef.current) {
-            // S'il n'y a pas eu de texte compris, relancer l'écoute en boucle
             startRecording();
           }
         } catch (err) {
@@ -315,10 +344,9 @@ export default function AIAssistant({
       mediaRecorderRef.current = recorder;
       recorder.start();
       setIsRecording(true);
-      
-      // Démarrer la détection de silence
+
       checkSilence();
-      
+
     } catch (err) {
       console.error("Impossible d'accéder au micro", err);
       alert("Accès au microphone refusé. Le mode vocal ne peut pas fonctionner.");
@@ -332,12 +360,12 @@ export default function AIAssistant({
     }
   };
 
-  // Écouteur d'événement global pour ouvrir Aria depuis la Map
+  // Écouteur d'événement global
   useEffect(() => {
     const handler = (e: CustomEvent) => {
       const msg = e.detail?.message;
       const forcedResponse = e.detail?.response;
-      
+
       if (forcedResponse) {
         setOpen(true);
         setMessages(prev => [
@@ -347,15 +375,15 @@ export default function AIAssistant({
         ]);
         setTimeout(() => speakText(forcedResponse), 500);
       } else if (msg) {
-        setOpen(true);           
-        setInput(msg);           
+        setOpen(true);
+        setInput(msg);
       }
     };
     window.addEventListener("aria-open", handler as EventListener);
     return () => window.removeEventListener("aria-open", handler as EventListener);
   }, []);
 
-  // Obtenir la position GPS quand on ouvre Aria
+  // Obtenir GPS
   useEffect(() => {
     if (open && !userLocation && "geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -371,7 +399,7 @@ export default function AIAssistant({
     }
   }, [open, userLocation]);
 
-  // Auto-scroll vers le bas
+  // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -398,8 +426,8 @@ export default function AIAssistant({
       }));
 
       const now = new Date();
-      const timeStr = `${now.getHours()}h${String(now.getMinutes()).padStart(2,"0")}`;
-      const dayName = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"][now.getDay()];
+      const timeStr = `${now.getHours()}h${String(now.getMinutes()).padStart(2, "0")}`;
+      const dayName = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"][now.getDay()];
 
       const response = await fetch("/api/aria", {
         method: "POST",
@@ -426,7 +454,24 @@ export default function AIAssistant({
           ?.map(b => (b.type === "text" ? b.text ?? "" : ""))
           .join("") ?? "Désolée, une erreur s'est produite.";
 
-      const { content, action, suggestions } = parseResponse(raw);
+      const { content, action, suggestions, command } = parseResponse(raw);
+
+      // Exécuter les commandes de contrôle
+      if (command) {
+        if (command === "CLOSE_ARIA") {
+          setTimeout(() => setOpen(false), 1500);
+        } else if (command === "MUTE_VOICE") {
+          setVoiceMode(false);
+        } else if (command === "ENABLE_VOICE") {
+          setVoiceMode(true);
+        } else if (command === "HANDS_FREE_ON") {
+          setHandsFree(true);
+          if (!isRecording) setTimeout(() => startRecording(), 500);
+        } else if (command === "HANDS_FREE_OFF") {
+          setHandsFree(false);
+          if (isRecording) stopRecording();
+        }
+      }
 
       const assistantMsg: Message = {
         id: crypto.randomUUID(),
@@ -450,9 +495,9 @@ export default function AIAssistant({
     } finally {
       setLoading(false);
     }
-  }, [loading, messages]);
+  }, [loading, messages, location, criticalZones, userLocation, isRecording]);
 
-  // Confirmation de l'action de guidage
+  // Confirmation action
   const confirmAction = useCallback((msgId: string) => {
     setMessages(prev => prev.map(m => {
       if (m.id !== msgId || !m.action) return m;
@@ -524,7 +569,6 @@ export default function AIAssistant({
 
       {/* ── Bouton micro flottant ── */}
       <div style={{ position: "fixed", bottom: 28, right: 28, zIndex: 9999 }}>
-        {/* Anneaux d'onde (idle uniquement) */}
         {!open && pulse && (
           <>
             <div style={{
@@ -541,41 +585,23 @@ export default function AIAssistant({
         )}
         <button
           type="button"
-          title={isRecording ? "ARIA vous écoute — cliquez pour arrêter" : "Parler à ARIA"}
-          onClick={() => {
-            if (open) { handleToggle(); return; }
-            setPulse(false);
-            if (isRecording) stopRecording();
-            else {
-              setOpen(true);
-              setTimeout(() => startRecording(), 300);
-            }
-          }}
+          title={open ? "Fermer ARIA" : "Ouvrir ARIA"}
+          onClick={handleToggle}
           style={{
             position: "relative",
             width: 72, height: 72, borderRadius: "50%",
-            background: isRecording
-              ? "#FFB800"
-              : open
-              ? "rgba(0,229,160,0.15)"
-              : "#00E5A0",
+            background: open ? "rgba(0,229,160,0.15)" : "#00E5A0",
             border: open ? "2px solid #00E5A0" : "none",
             cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center",
-            animation: isRecording ? "aria-record 1s infinite" : (pulse && !open ? "aria-pulse 2.5s infinite" : "none"),
+            animation: pulse && !open ? "aria-pulse 2.5s infinite" : "none",
             transition: "all 0.25s cubic-bezier(.4,0,.2,1)",
-            boxShadow: isRecording
-              ? "0 6px 32px rgba(255,184,0,0.5)"
-              : open
-              ? "0 0 0 0 transparent"
-              : "0 8px 32px rgba(0,229,160,0.45)",
+            boxShadow: open ? "0 0 0 0 transparent" : "0 8px 32px rgba(0,229,160,0.45)",
           }}
         >
           {open
             ? <X size={26} color="#00E5A0" />
-            : isRecording
-            ? <Square size={24} fill="#0A0E1A" color="#0A0E1A" />
-            : <Mic size={28} color="#0A0E1A" strokeWidth={2.5} />}
+            : <Sparkles size={28} color="#0A0E1A" strokeWidth={2.5} />}
         </button>
       </div>
 
@@ -594,7 +620,7 @@ export default function AIAssistant({
           maxHeight: "70vh",
         }}>
 
-          {/* Header compact */}
+          {/* Header */}
           <div style={{
             padding: "14px 18px 10px",
             borderBottom: "1px solid rgba(255,255,255,0.05)",
@@ -649,67 +675,8 @@ export default function AIAssistant({
             </div>
           </div>
 
-          {/* Zone mic hero + messages */}
+          {/* Messages */}
           <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
-
-            {/* ★ MIC HERO — visible quand conversation vide ou en écoute */}
-            {(messages.length <= 1 || isRecording) && (
-              <div style={{
-                display: "flex", flexDirection: "column", alignItems: "center",
-                padding: "28px 20px 20px", gap: "12px",
-              }}>
-                {/* Bouton mic hero */}
-                <div style={{ position: "relative", width: 96, height: 96 }}>
-                  {isRecording && (
-                    <>
-                      <div style={{
-                        position: "absolute", inset: 0, borderRadius: "50%",
-                        background: "#FFB800", opacity: 0.15,
-                        animation: "aria-ring 1.2s 0s ease-out infinite",
-                      }} />
-                      <div style={{
-                        position: "absolute", inset: 0, borderRadius: "50%",
-                        background: "#FFB800", opacity: 0.1,
-                        animation: "aria-ring 1.2s 0.4s ease-out infinite",
-                      }} />
-                    </>
-                  )}
-                  <button
-                    type="button"
-                    title={isRecording ? "Arrêter" : "Parler à ARIA"}
-                    onClick={isRecording ? stopRecording : startRecording}
-                    disabled={loading}
-                    style={{
-                      position: "absolute", inset: 0,
-                      borderRadius: "50%",
-                      background: isRecording ? "#FFB800" : "#00E5A0",
-                      border: "none", cursor: loading ? "default" : "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      transition: "all 0.2s",
-                      boxShadow: isRecording
-                        ? "0 8px 32px rgba(255,184,0,0.5)"
-                        : "0 8px 32px rgba(0,229,160,0.4)",
-                    }}
-                  >
-                    {loading
-                      ? <Loader size={32} color="#0A0E1A" style={{ animation: "aria-spin 1s linear infinite" }} />
-                      : isRecording
-                      ? <Square size={30} fill="#0A0E1A" color="#0A0E1A" />
-                      : <Mic size={36} color="#0A0E1A" strokeWidth={2} />}
-                  </button>
-                </div>
-                <p style={{
-                  fontSize: "12px", fontWeight: 600,
-                  color: isRecording ? "#FFB800" : "rgba(255,255,255,0.4)",
-                  letterSpacing: "0.08em", textTransform: "uppercase",
-                  transition: "color 0.3s",
-                }}>
-                  {loading ? "Analyse en cours…" : isRecording ? "J’écoute…" : "Appuyez pour parler"}
-                </p>
-              </div>
-            )}
-
-            {/* Historique messages */}
             <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "12px" }}>
               {messages.map(msg => (
                 <div key={msg.id} style={{ animation: "aria-msg-in 0.3s ease" }}>
@@ -775,7 +742,7 @@ export default function AIAssistant({
                 </div>
               ))}
 
-              {loading && !isRecording && (
+              {loading && (
                 <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
                   <div style={{
                     width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
@@ -791,7 +758,7 @@ export default function AIAssistant({
                     padding: "12px 16px",
                     display: "flex", gap: "5px", alignItems: "center",
                   }}>
-                    {[0,1,2].map(i => (
+                    {[0, 1, 2].map(i => (
                       <div key={i} style={{
                         width: 6, height: 6, borderRadius: "50%",
                         background: "#00E5A0",
@@ -805,13 +772,35 @@ export default function AIAssistant({
             </div>
           </div>
 
-          {/* Zone de saisie texte */}
+          {/* Zone de saisie avec micro */}
           <div style={{
             padding: "10px 14px 14px",
             borderTop: "1px solid rgba(255,255,255,0.05)",
             background: "rgba(0,0,0,0.3)",
             display: "flex", gap: "8px", alignItems: "center",
           }}>
+            {/* Bouton micro à gauche */}
+            <button
+              type="button"
+              title={isRecording ? "Arrêter l'enregistrement" : "Parler à ARIA"}
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={loading}
+              style={{
+                width: 40, height: 40, borderRadius: "12px",
+                background: isRecording ? "#FFB800" : "rgba(0,229,160,0.12)",
+                border: "none",
+                cursor: loading ? "default" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all 0.2s",
+                flexShrink: 0,
+                animation: isRecording ? "aria-record 1s infinite" : "none",
+              }}
+            >
+              {isRecording
+                ? <Square size={16} fill="#0A0E1A" color="#0A0E1A" />
+                : <Mic size={16} color="#00E5A0" />}
+            </button>
+
             <input
               ref={inputRef}
               value={input}
@@ -822,7 +811,7 @@ export default function AIAssistant({
                   void sendMessage(input);
                 }
               }}
-              placeholder="Ou écrivez votre destination…"
+              placeholder="Écrivez ou dites 'ferme aria'…"
               aria-label="Message à ARIA"
               style={{
                 flex: 1,
