@@ -71,10 +71,10 @@ function zoneRadius(level: number): number {
 
 // ─── Icône véhicule personnalisée ─────────────────────────────────
 function makeVehicleIcon(type: Vehicle["type"], line?: string): L.DivIcon {
-  const colors = { taxibe: "#00E5FF", car: "#FFB300", moto: "#A78BFA", pedestrian: "#00D4A4" };
+  const colors = { taxibe: "#00E5A0", car: "#FFB800", moto: "#FFB800", pedestrian: "#00E5A0" };
   const color = colors[type];
-  const emoji = type === "taxibe" ? "🚌" : type === "moto" ? "🏍️" : type === "pedestrian" ? "🚶" : "🚗";
-  const label = line ? `<div style="font-size:8px;font-weight:700;color:${color};text-align:center;letter-spacing:-.02em;margin-top:1px;">${line}</div>` : "";
+  const abbr = type === "taxibe" ? "BUS" : type === "moto" ? "MOTO" : type === "pedestrian" ? "PIÉ" : "CAR";
+  const label = line ? `<div style="font-size:7px;font-weight:800;color:${color};text-align:center;letter-spacing:.03em;margin-top:1px;">${line}</div>` : "";
 
   return L.divIcon({
     className: "",
@@ -84,15 +84,19 @@ function makeVehicleIcon(type: Vehicle["type"], line?: string): L.DivIcon {
         display:flex;flex-direction:column;align-items:center;
       ">
         <div style="
-          font-size:16px;
-          filter:drop-shadow(0 0 4px ${color});
-          animation:vehicle-pulse 2s ease infinite;
-        ">${emoji}</div>
+          width:22px;height:22px;border-radius:6px;
+          background:${color}18;
+          border:1.5px solid ${color};
+          display:flex;align-items:center;justify-content:center;
+          font-size:7px;font-weight:800;color:${color};
+          letter-spacing:.02em;
+          box-shadow:0 0 6px ${color}40;
+        ">${abbr}</div>
         ${label}
       </div>
     `,
-    iconSize: [28, 32],
-    iconAnchor: [14, 16],
+    iconSize: [26, 30],
+    iconAnchor: [13, 15],
   });
 }
 
@@ -293,7 +297,7 @@ function UserLocation() {
           <div style="position:relative;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">
             <div style="position:absolute;width:48px;height:48px;background:rgba(0,229,160,0.3);border-radius:50%;animation:pulse-ring 2s infinite;"></div>
             <div style="position:relative;width:32px;height:32px;background:#0A0E1A;border:2px solid #00E5A0;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.5);z-index:2;">
-              <span style="font-size:16px;line-height:1;">🧑🏽‍💻</span>
+              <div style="width:10px;height:10px;background:#00E5A0;border-radius:50%;box-shadow:0 0 8px #00E5A0;"></div>
             </div>
           </div>
           <style>
@@ -309,7 +313,7 @@ function UserLocation() {
     >
       <Popup>
         <div style={{ textAlign: "center", minWidth: 120 }}>
-          <div style={{ fontWeight: 800, fontSize: 13, color: "#00E5A0", marginBottom: 4 }}>📍 C'est vous !</div>
+          <div style={{ fontWeight: 800, fontSize: 13, color: "#00E5A0", marginBottom: 4 }}>Votre position</div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>Position GPS en direct</div>
         </div>
       </Popup>
@@ -617,7 +621,7 @@ export default function TrafficMap({ zones, selectedTrajet, userCoords, simulati
                     <span style={{ fontSize: 12, fontWeight: 700, color: zoneColor(zone.level) }}>{zone.level}%</span>
                   </div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)" }}>
-                    {zone.level >= 80 ? "⚠️ Axe saturé — éviter" : zone.level >= 60 ? "🟡 Trafic dense" : "✅ Circulation fluide"}
+                    {zone.level >= 80 ? "Axe saturé — éviter" : zone.level >= 60 ? "Trafic dense" : "Circulation fluide"}
                   </div>
                   {zone.level >= 80 && (
                     <div style={{ marginTop: 8, padding: "6px 8px", background: "rgba(255,61,0,.1)", borderRadius: 8, fontSize: 11, color: "#FF3D00" }}>
@@ -640,7 +644,7 @@ export default function TrafficMap({ zones, selectedTrajet, userCoords, simulati
             <Popup>
               <div style={{ fontSize: 12, minWidth: 140 }}>
                 <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                  {v.type === "taxibe" ? `🚌 Taxi-be ${v.line ?? ""}` : v.type === "moto" ? "🏍️ Taxi-moto" : v.type === "pedestrian" ? "🚶 Piéton" : "🚗 Voiture"}
+                  {v.type === "taxibe" ? `Taxi-be ${v.line ?? ""}` : v.type === "moto" ? "Taxi-moto" : v.type === "pedestrian" ? "Piéton" : "Voiture"}
                 </div>
                 <div style={{ color: "rgba(255,255,255,.55)" }}>
                   {t("map.speed")} <span style={{ color: v.speed < 10 ? "#FF3D00" : v.speed < 20 ? "#FFB300" : "#00D4A4", fontWeight: 600 }}>
@@ -659,22 +663,22 @@ export default function TrafficMap({ zones, selectedTrajet, userCoords, simulati
       {/* ── Overlay Infos Trajet ── */}
       {selectedTrajet && routeInfo && (
         <div className="route-info-card">
-          <div className="route-dest">🎯 {selectedTrajet.to}</div>
+          <div className="route-dest">{selectedTrajet.to}</div>
           <div className="route-stats">
             <div className="stat-item">
-              <span className="icon">📏</span>
+              <span className="stat-lbl">Dist.</span>
               <span className="val">{routeInfo.distKm} km</span>
             </div>
             <div className="stat-item highlight">
-              <span className="icon">🚗</span>
+              <span className="stat-lbl">Voiture</span>
               <span className="val">{routeInfo.durCarMin} min</span>
             </div>
             <div className="stat-item">
-              <span className="icon">🚌</span>
+              <span className="stat-lbl">Bus</span>
               <span className="val">{Math.round(routeInfo.durCarMin * 1.3)} min</span>
             </div>
             <div className="stat-item">
-              <span className="icon">🚶</span>
+              <span className="stat-lbl">Marche</span>
               <span className="val">{routeInfo.durFootMin} min</span>
             </div>
           </div>

@@ -27,10 +27,10 @@ export default function Login() {
 
       if (error) throw error
 
-      setMessage(`✅ Inscription réussie ! Vérifiez vos emails.`)
+      setMessage(`Inscription réussie — Vérifiez vos emails.`)
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue'
-      setMessage(`❌ Erreur : ${errorMessage}`)
+      setMessage(`Erreur : ${errorMessage}`)
     }
   }
 
@@ -39,11 +39,11 @@ export default function Login() {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
-      setMessage(`✅ Connexion réussie !`);
+      setMessage(`Connexion réussie !`);
       router.push("/dashboard");
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Erreur inconnue';
-      setMessage(`❌ Erreur : ${errorMessage}`);
+      setMessage(`Erreur : ${errorMessage}`);
     }
   };
 
@@ -89,7 +89,7 @@ export default function Login() {
           </div>
 
           {message && (
-            <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
+            <div className={`message ${message.includes('réussie') ? 'success' : 'error'}`}>
               {message}
             </div>
           )}
@@ -165,17 +165,14 @@ export default function Login() {
           50% { opacity: 0.5; transform: scale(1.3); }
         }
         .brand { 
-          font-size: 56px; 
+          font-size: 52px; 
           font-weight: 900; 
-          background: linear-gradient(90deg, #00E5A0, #00BFFF);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+          color: #fff;
           letter-spacing: -0.04em; 
           line-height: 1; 
-          filter: drop-shadow(0 4px 20px rgba(0, 229, 160, 0.4));
           margin-bottom: 0;
         }
-        .brand b { font-weight: 900; }
+        .brand b { color: #00E5A0; font-weight: 900; }
 
         .subtitle {
           text-align: center;

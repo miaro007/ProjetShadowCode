@@ -496,11 +496,15 @@ export default function AIAssistant({
     <>
       <style>{`
         @keyframes aria-pulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(0,212,164,0.4); }
-          50%      { box-shadow: 0 0 0 12px rgba(0,212,164,0); }
+          0%,100% { box-shadow: 0 0 0 0 rgba(0,229,160,0.5); }
+          50%      { box-shadow: 0 0 0 18px rgba(0,229,160,0); }
+        }
+        @keyframes aria-ring {
+          0%   { transform: scale(1);   opacity: 0.6; }
+          100% { transform: scale(1.9); opacity: 0; }
         }
         @keyframes aria-slide-up {
-          from { opacity: 0; transform: translateY(20px) scale(0.95); }
+          from { opacity: 0; transform: translateY(24px) scale(0.96); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes aria-msg-in {
@@ -512,69 +516,107 @@ export default function AIAssistant({
           0%,80%,100% { opacity: 0; transform: scale(0.8); }
           40%         { opacity: 1; transform: scale(1); }
         }
+        @keyframes aria-record {
+          0%,100% { box-shadow: 0 0 0 0 rgba(255,184,0,0.6); }
+          50%     { box-shadow: 0 0 0 16px rgba(255,184,0,0); }
+        }
       `}</style>
 
-      {/* ── Bouton flottant ── */}
-      <button
-        type="button"
-        title="Ouvrir ARIA"
-        onClick={handleToggle}
-        style={{
-          position: "fixed", bottom: 28, right: 28, zIndex: 9999,
-          width: 58, height: 58, borderRadius: "50%",
-          background: "linear-gradient(135deg, #00D4A4, #0099ff)",
-          border: "none", cursor: "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          animation: pulse ? "aria-pulse 2s infinite" : "none",
-          transition: "transform 0.2s",
-          transform: open ? "scale(0.92)" : "scale(1)",
-          boxShadow: "0 4px 24px rgba(0,212,164,0.35)",
-        }}
-      >
-        {open ? <X size={22} color="#fff" /> : <Sparkles size={22} color="#fff" />}
-      </button>
+      {/* ── Bouton micro flottant ── */}
+      <div style={{ position: "fixed", bottom: 28, right: 28, zIndex: 9999 }}>
+        {/* Anneaux d'onde (idle uniquement) */}
+        {!open && pulse && (
+          <>
+            <div style={{
+              position: "absolute", inset: 0, borderRadius: "50%",
+              background: "#00E5A0", opacity: 0.15,
+              animation: "aria-ring 2s 0s ease-out infinite",
+            }} />
+            <div style={{
+              position: "absolute", inset: 0, borderRadius: "50%",
+              background: "#00E5A0", opacity: 0.1,
+              animation: "aria-ring 2s 0.6s ease-out infinite",
+            }} />
+          </>
+        )}
+        <button
+          type="button"
+          title={isRecording ? "ARIA vous écoute — cliquez pour arrêter" : "Parler à ARIA"}
+          onClick={() => {
+            if (open) { handleToggle(); return; }
+            setPulse(false);
+            if (isRecording) stopRecording();
+            else {
+              setOpen(true);
+              setTimeout(() => startRecording(), 300);
+            }
+          }}
+          style={{
+            position: "relative",
+            width: 72, height: 72, borderRadius: "50%",
+            background: isRecording
+              ? "#FFB800"
+              : open
+              ? "rgba(0,229,160,0.15)"
+              : "#00E5A0",
+            border: open ? "2px solid #00E5A0" : "none",
+            cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            animation: isRecording ? "aria-record 1s infinite" : (pulse && !open ? "aria-pulse 2.5s infinite" : "none"),
+            transition: "all 0.25s cubic-bezier(.4,0,.2,1)",
+            boxShadow: isRecording
+              ? "0 6px 32px rgba(255,184,0,0.5)"
+              : open
+              ? "0 0 0 0 transparent"
+              : "0 8px 32px rgba(0,229,160,0.45)",
+          }}
+        >
+          {open
+            ? <X size={26} color="#00E5A0" />
+            : isRecording
+            ? <Square size={24} fill="#0A0E1A" color="#0A0E1A" />
+            : <Mic size={28} color="#0A0E1A" strokeWidth={2.5} />}
+        </button>
+      </div>
 
-      {/* ── Panel chat ── */}
+      {/* ── Panel ARIA ── */}
       {open && (
         <div style={{
-          position: "fixed", bottom: 100, right: 28, zIndex: 9998,
-          width: 380, height: 560,
-          background: "#0D1526",
-          border: "1px solid rgba(0,212,164,0.2)",
-          borderRadius: "24px",
+          position: "fixed", bottom: 112, right: 28, zIndex: 9998,
+          width: 370,
+          background: "#0A0E1A",
+          border: "1px solid rgba(0,229,160,0.15)",
+          borderRadius: "28px",
           display: "flex", flexDirection: "column",
           overflow: "hidden",
-          animation: "aria-slide-up 0.3s ease",
-          boxShadow: "0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,212,164,0.1)",
+          animation: "aria-slide-up 0.28s cubic-bezier(.4,0,.2,1)",
+          boxShadow: "0 32px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(0,229,160,0.08)",
+          maxHeight: "70vh",
         }}>
 
-          {/* Header */}
+          {/* Header compact */}
           <div style={{
-            padding: "16px 20px",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-            background: "linear-gradient(135deg, rgba(0,212,164,0.1) 0%, rgba(0,153,255,0.05) 100%)",
-            display: "flex", alignItems: "center", gap: "12px",
+            padding: "14px 18px 10px",
+            borderBottom: "1px solid rgba(255,255,255,0.05)",
+            display: "flex", alignItems: "center", gap: "10px",
           }}>
             <div style={{
-              width: 38, height: 38, borderRadius: "50%",
-              background: "linear-gradient(135deg, #00D4A4, #0099ff)",
+              width: 32, height: 32, borderRadius: "50%",
+              background: "#00E5A0",
               display: "flex", alignItems: "center", justifyContent: "center",
               flexShrink: 0,
             }}>
-              <Sparkles size={18} color="#fff" />
+              <Sparkles size={15} color="#0A0E1A" />
             </div>
             <div>
-              <div style={{ fontSize: "15px", fontWeight: 700, color: "#fff" }}>ARIA</div>
-              <div style={{ fontSize: "11px", color: "#00D4A4", display: "flex", alignItems: "center", gap: "5px" }}>
-                <span style={{
-                  width: 6, height: 6, borderRadius: "50%",
-                  background: "#00D4A4", display: "inline-block",
-                }} />
-                Conseiller mobilité · {location ?? "Antananarivo"} · Live
+              <div style={{ fontSize: "14px", fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>ARIA</div>
+              <div style={{ fontSize: "10px", color: "#00E5A0", display: "flex", alignItems: "center", gap: "4px", fontWeight: 600 }}>
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#00E5A0", display: "inline-block" }} />
+                {location ?? "Antananarivo"} · Live
               </div>
             </div>
-            
-            <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+
+            <div style={{ marginLeft: "auto", display: "flex", gap: "6px" }}>
               <button
                 type="button"
                 title={handsFree ? "Désactiver Mains-libres" : "Activer Mains-libres"}
@@ -585,153 +627,189 @@ export default function AIAssistant({
                   if (!next && isRecording) stopRecording();
                 }}
                 style={{
-                  background: handsFree ? "rgba(0, 212, 164, 0.2)" : "none", 
-                  border: "none",
-                  borderRadius: "8px",
-                  color: handsFree ? "#00D4A4" : "rgba(255,255,255,0.3)", 
+                  background: handsFree ? "rgba(0,229,160,0.15)" : "none",
+                  border: "none", borderRadius: "8px",
+                  color: handsFree ? "#00E5A0" : "rgba(255,255,255,0.3)",
                   cursor: "pointer", padding: "4px 8px",
-                  display: "flex", alignItems: "center", gap: "6px",
-                  fontSize: "11px", fontWeight: 600
+                  display: "flex", alignItems: "center", gap: "5px",
+                  fontSize: "10px", fontWeight: 700,
                 }}
               >
-                {handsFree ? <Ear size={16} /> : <EarOff size={16} />}
+                {handsFree ? <Ear size={15} /> : <EarOff size={15} />}
                 {handsFree && "Mains-libres"}
               </button>
-
               <button
                 type="button"
-                title={voiceMode ? "Désactiver la voix" : "Activer la voix"}
+                title={voiceMode ? "Muet" : "Son"}
                 onClick={() => setVoiceMode(!voiceMode)}
-                style={{
-                  background: "none", border: "none",
-                  color: voiceMode ? "#00D4A4" : "rgba(255,255,255,0.3)", 
-                  cursor: "pointer", padding: "4px",
-                }}
+                style={{ background: "none", border: "none", color: voiceMode ? "#00E5A0" : "rgba(255,255,255,0.25)", cursor: "pointer", padding: "4px" }}
               >
-                {voiceMode ? <Volume2 size={16} /> : <VolumeX size={16} />}
-              </button>
-              
-              <button
-                type="button"
-                title="Fermer"
-                onClick={() => setOpen(false)}
-                style={{
-                  background: "none", border: "none",
-                  color: "rgba(255,255,255,0.3)", cursor: "pointer", padding: "4px",
-                }}
-              >
-                <X size={16} />
+                {voiceMode ? <Volume2 size={15} /> : <VolumeX size={15} />}
               </button>
             </div>
           </div>
 
-          {/* Corps de la conversation */}
-          <div style={{
-            flex: 1, overflowY: "auto", padding: "16px",
-            display: "flex", flexDirection: "column", gap: "12px",
-          }}>
-            {messages.map(msg => (
-              <div key={msg.id} style={{ animation: "aria-msg-in 0.3s ease" }}>
-                {msg.role === "assistant" ? (
-                  <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                    <div style={{
-                      width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                      background: "linear-gradient(135deg, #00D4A4, #0099ff)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <Sparkles size={13} color="#fff" />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          background: "rgba(255,255,255,0.05)",
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          borderRadius: "4px 16px 16px 16px",
-                          padding: "10px 14px",
-                          fontSize: "13px", lineHeight: 1.6,
-                          color: "rgba(255,255,255,0.85)",
-                        }}
-                        dangerouslySetInnerHTML={{ __html: formatContent(msg.content) }}
-                      />
-                      {msg.action && (
-                        <ActionCard
-                          action={msg.action}
-                          onConfirm={() => confirmAction(msg.id)}
-                        />
-                      )}
-                      {msg.suggestions && (
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "8px" }}>
-                          {msg.suggestions.map(s => (
-                            <button
-                              key={s}
-                              type="button"
-                              title={s}
-                              onClick={() => void sendMessage(s)}
-                              style={{
-                                padding: "5px 10px",
-                                background: "rgba(0,212,164,0.08)",
-                                border: "1px solid rgba(0,212,164,0.2)",
-                                borderRadius: "999px",
-                                color: "#00D4A4",
-                                fontSize: "11px", cursor: "pointer",
-                                transition: "all 0.15s",
-                              }}
-                            >{s}</button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                    <div style={{
-                      background: "linear-gradient(135deg, rgba(0,212,164,0.25), rgba(0,153,255,0.15))",
-                      border: "1px solid rgba(0,212,164,0.2)",
-                      borderRadius: "16px 4px 16px 16px",
-                      padding: "10px 14px",
-                      fontSize: "13px", lineHeight: 1.6,
-                      color: "#fff", maxWidth: "80%",
-                    }}>{msg.content}</div>
-                  </div>
-                )}
-              </div>
-            ))}
+          {/* Zone mic hero + messages */}
+          <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
 
-            {/* Indicateur de chargement IA */}
-            {loading && (
-              <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
-                  background: "linear-gradient(135deg, #00D4A4, #0099ff)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <Sparkles size={13} color="#fff" />
+            {/* ★ MIC HERO — visible quand conversation vide ou en écoute */}
+            {(messages.length <= 1 || isRecording) && (
+              <div style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                padding: "28px 20px 20px", gap: "12px",
+              }}>
+                {/* Bouton mic hero */}
+                <div style={{ position: "relative", width: 96, height: 96 }}>
+                  {isRecording && (
+                    <>
+                      <div style={{
+                        position: "absolute", inset: 0, borderRadius: "50%",
+                        background: "#FFB800", opacity: 0.15,
+                        animation: "aria-ring 1.2s 0s ease-out infinite",
+                      }} />
+                      <div style={{
+                        position: "absolute", inset: 0, borderRadius: "50%",
+                        background: "#FFB800", opacity: 0.1,
+                        animation: "aria-ring 1.2s 0.4s ease-out infinite",
+                      }} />
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    title={isRecording ? "Arrêter" : "Parler à ARIA"}
+                    onClick={isRecording ? stopRecording : startRecording}
+                    disabled={loading}
+                    style={{
+                      position: "absolute", inset: 0,
+                      borderRadius: "50%",
+                      background: isRecording ? "#FFB800" : "#00E5A0",
+                      border: "none", cursor: loading ? "default" : "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "all 0.2s",
+                      boxShadow: isRecording
+                        ? "0 8px 32px rgba(255,184,0,0.5)"
+                        : "0 8px 32px rgba(0,229,160,0.4)",
+                    }}
+                  >
+                    {loading
+                      ? <Loader size={32} color="#0A0E1A" style={{ animation: "aria-spin 1s linear infinite" }} />
+                      : isRecording
+                      ? <Square size={30} fill="#0A0E1A" color="#0A0E1A" />
+                      : <Mic size={36} color="#0A0E1A" strokeWidth={2} />}
+                  </button>
                 </div>
-                <div style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "4px 16px 16px 16px",
-                  padding: "12px 16px",
-                  display: "flex", gap: "5px", alignItems: "center",
+                <p style={{
+                  fontSize: "12px", fontWeight: 600,
+                  color: isRecording ? "#FFB800" : "rgba(255,255,255,0.4)",
+                  letterSpacing: "0.08em", textTransform: "uppercase",
+                  transition: "color 0.3s",
                 }}>
-                  {[0, 1, 2].map(i => (
-                    <div key={i} style={{
-                      width: 6, height: 6, borderRadius: "50%",
-                      background: "#00D4A4",
-                      animation: `aria-dot 1.4s ${i * 0.2}s infinite`,
-                    }} />
-                  ))}
-                </div>
+                  {loading ? "Analyse en cours…" : isRecording ? "J’écoute…" : "Appuyez pour parler"}
+                </p>
               </div>
             )}
-            <div ref={bottomRef} />
+
+            {/* Historique messages */}
+            <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+              {messages.map(msg => (
+                <div key={msg.id} style={{ animation: "aria-msg-in 0.3s ease" }}>
+                  {msg.role === "assistant" ? (
+                    <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                      <div style={{
+                        width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                        background: "#00E5A0",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        <Sparkles size={12} color="#0A0E1A" />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            background: "rgba(255,255,255,0.04)",
+                            border: "1px solid rgba(255,255,255,0.06)",
+                            borderRadius: "4px 16px 16px 16px",
+                            padding: "10px 14px",
+                            fontSize: "13px", lineHeight: 1.65,
+                            color: "rgba(255,255,255,0.88)",
+                          }}
+                          dangerouslySetInnerHTML={{ __html: formatContent(msg.content) }}
+                        />
+                        {msg.action && (
+                          <ActionCard action={msg.action} onConfirm={() => confirmAction(msg.id)} />
+                        )}
+                        {msg.suggestions && (
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "8px" }}>
+                            {msg.suggestions.map(s => (
+                              <button
+                                key={s} type="button" title={s}
+                                onClick={() => void sendMessage(s)}
+                                style={{
+                                  padding: "5px 11px",
+                                  background: "rgba(0,229,160,0.07)",
+                                  border: "1px solid rgba(0,229,160,0.18)",
+                                  borderRadius: "999px",
+                                  color: "#00E5A0",
+                                  fontSize: "11px", cursor: "pointer",
+                                  fontWeight: 600,
+                                  transition: "all 0.15s",
+                                }}
+                              >{s}</button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                      <div style={{
+                        background: "rgba(0,229,160,0.12)",
+                        border: "1px solid rgba(0,229,160,0.18)",
+                        borderRadius: "16px 4px 16px 16px",
+                        padding: "10px 14px",
+                        fontSize: "13px", lineHeight: 1.6,
+                        color: "#fff", maxWidth: "82%",
+                        fontWeight: 500,
+                      }}>{msg.content}</div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {loading && !isRecording && (
+                <div style={{ display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                  <div style={{
+                    width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+                    background: "#00E5A0",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Sparkles size={12} color="#0A0E1A" />
+                  </div>
+                  <div style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    borderRadius: "4px 16px 16px 16px",
+                    padding: "12px 16px",
+                    display: "flex", gap: "5px", alignItems: "center",
+                  }}>
+                    {[0,1,2].map(i => (
+                      <div key={i} style={{
+                        width: 6, height: 6, borderRadius: "50%",
+                        background: "#00E5A0",
+                        animation: `aria-dot 1.4s ${i * 0.2}s infinite`,
+                      }} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div ref={bottomRef} />
+            </div>
           </div>
 
-          {/* Formulaire d'envoi */}
+          {/* Zone de saisie texte */}
           <div style={{
-            padding: "12px 16px",
-            borderTop: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(0,0,0,0.2)",
+            padding: "10px 14px 14px",
+            borderTop: "1px solid rgba(255,255,255,0.05)",
+            background: "rgba(0,0,0,0.3)",
             display: "flex", gap: "8px", alignItems: "center",
           }}>
             <input
@@ -744,48 +822,27 @@ export default function AIAssistant({
                   void sendMessage(input);
                 }
               }}
-              placeholder="Demandez un itinéraire à ARIA…"
+              placeholder="Ou écrivez votre destination…"
               aria-label="Message à ARIA"
               style={{
                 flex: 1,
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "12px",
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "14px",
                 padding: "10px 14px",
                 color: "#fff",
                 fontSize: "13px",
                 outline: "none",
               }}
             />
-            
-            <button
-              type="button"
-              title={isRecording ? "Arrêter l'enregistrement" : "Parler à ARIA"}
-              onClick={isRecording ? stopRecording : startRecording}
-              disabled={loading}
-              style={{
-                width: 38, height: 38, borderRadius: "10px",
-                background: isRecording ? "rgba(239, 68, 68, 0.2)" : "rgba(255,255,255,0.06)",
-                border: isRecording ? "1px solid #ef4444" : "none",
-                color: isRecording ? "#ef4444" : "rgba(255,255,255,0.6)",
-                cursor: loading ? "default" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                transition: "all 0.2s", flexShrink: 0,
-              }}
-            >
-              {isRecording ? <Square size={15} fill="#ef4444" /> : <Mic size={15} />}
-            </button>
-
             <button
               type="button"
               title="Envoyer"
               onClick={() => void sendMessage(input)}
               disabled={!input.trim() || loading}
               style={{
-                width: 38, height: 38, borderRadius: "10px",
-                background: input.trim() && !loading
-                  ? "linear-gradient(135deg, #00D4A4, #0099ff)"
-                  : "rgba(255,255,255,0.06)",
+                width: 40, height: 40, borderRadius: "12px",
+                background: input.trim() && !loading ? "#00E5A0" : "rgba(255,255,255,0.06)",
                 border: "none",
                 cursor: input.trim() && !loading ? "pointer" : "default",
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -794,8 +851,7 @@ export default function AIAssistant({
             >
               {loading
                 ? <Loader size={15} color="rgba(255,255,255,0.4)" style={{ animation: "aria-spin 1s linear infinite" }} />
-                : <Send size={15} color={input.trim() ? "#fff" : "rgba(255,255,255,0.3)"} />
-              }
+                : <Send size={15} color={input.trim() ? "#0A0E1A" : "rgba(255,255,255,0.3)"} />}
             </button>
           </div>
         </div>

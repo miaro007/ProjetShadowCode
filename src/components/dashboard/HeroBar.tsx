@@ -23,7 +23,7 @@ export default function HeroBar({ displayName, hour, congestionData, zones, onDe
     <div className="hero">
       <div className="hero-info">
         <h1 className="title">
-          Bonjour <span className="hl">{displayName}</span> 👋
+          Bonjour <span className="hl">{displayName}</span>
         </h1>
         <div className="stats">
           <div className="stat">
@@ -43,12 +43,19 @@ export default function HeroBar({ displayName, hour, congestionData, zones, onDe
 
       <div className="hero-actions">
         <button className="cta-signal" onClick={onSignalClick}>
-          <span className="cta-icon">⚠️</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
           <span className="cta-text">SIGNALER</span>
         </button>
 
         <button className="cta-main" onClick={onDestinationClick}>
-          <div className="cta-main-icon">🧭</div>
+          <svg className="cta-main-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="10 8 16 12 10 16 10 8"/>
+          </svg>
           <div className="cta-main-content">
             <span className="cta-main-title">OÙ VAIS-JE ?</span>
             <span className="cta-main-sub">Itinéraire optimal avec ARIA</span>
@@ -99,7 +106,6 @@ export default function HeroBar({ displayName, hour, congestionData, zones, onDe
           transform: translateY(-2px);
           box-shadow: 0 8px 24px rgba(255,184,0,0.4);
         }
-        .cta-icon { font-size: 18px; }
 
         .cta-main {
           background: ${COLORS.primary};
@@ -123,7 +129,7 @@ export default function HeroBar({ displayName, hour, congestionData, zones, onDe
           box-shadow: 0 10px 32px rgba(0,229,160,0.5);
         }
         .cta-main:hover::before { transform: translateX(100%); }
-        .cta-main-icon { font-size: 26px; }
+        .cta-main-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .cta-main-content { display: flex; flex-direction: column; align-items: flex-start; }
         .cta-main-title { font-size: 15px; font-weight: 900; letter-spacing: 0.04em; }
         .cta-main-sub { font-size: 11px; opacity: 0.7; font-weight: 600; }
