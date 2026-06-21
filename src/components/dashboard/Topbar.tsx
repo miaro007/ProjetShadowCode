@@ -1,6 +1,7 @@
 "use client";
 
 import { COLORS } from "@/lib/dashboard-data";
+import Image from "next/image";
 
 // SVG Icons — pas d'emojis
 function IconSun() {
@@ -50,7 +51,13 @@ export default function Topbar({ displayName, location, onLogout, time, theme, o
     <header className="topbar">
       <div className="left">
         <div className="logo">
-          <div className="logo-dot" />
+          <Image
+            src="/WhatsApp-Image-2026-06-21-at-09.51.08 (1).png"
+            alt="Ambotakany Logo"
+            width={52}
+            height={52}
+            className="logo-image"
+          />
           <span className="brand">Ambota<b>kany</b></span>
         </div>
         <div className="live-chip">
@@ -97,15 +104,9 @@ export default function Topbar({ displayName, location, onLogout, time, theme, o
 
         /* Logo */
         .logo { display: flex; align-items: center; gap: 10px; }
-        .logo-dot {
-          width: 9px; height: 9px; border-radius: 50%;
-          background: ${COLORS.primary};
-          box-shadow: 0 0 12px ${COLORS.primary};
-          animation: dot-pulse 1.8s ease-in-out infinite;
-        }
-        @keyframes dot-pulse {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.55; transform: scale(1.35); }
+        .logo :global(.logo-image) {
+          border-radius: 8px;
+          object-fit: contain;
         }
         .brand {
           font-size: 20px; font-weight: 700; letter-spacing: -0.03em;
@@ -128,6 +129,10 @@ export default function Topbar({ displayName, location, onLogout, time, theme, o
           width: 6px; height: 6px; border-radius: 50%;
           background: ${COLORS.primary};
           animation: dot-pulse 1.2s ease-in-out infinite;
+        }
+        @keyframes dot-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.55; transform: scale(1.35); }
         }
 
         /* Center */
@@ -203,7 +208,6 @@ export default function Topbar({ displayName, location, onLogout, time, theme, o
           color: #007A55;
         }
         :global(.light-theme) .live-dot { background: #007A55; }
-        :global(.light-theme) .logo-dot { background: #007A55; box-shadow: 0 0 12px #007A55; }
         :global(.light-theme) .brand b { color: #007A55; }
         :global(.light-theme) .icon-btn {
           background: rgba(0,0,0,0.04);
