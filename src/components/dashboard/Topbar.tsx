@@ -16,7 +16,10 @@ export default function Topbar({ displayName, location, onLogout, time, theme, o
       <div className="left">
         <div className="logo">
           <div className="pulse" />
-          <span className="brand">Smart<b>Ambotaka</b></span>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span className="brand">Ambota<b>kany</b></span>
+            <span className="slogan">On transforme le blocage en destination réussie.</span>
+          </div>
         </div>
         <span className="live">● LIVE</span>
       </div>
@@ -67,8 +70,25 @@ export default function Topbar({ displayName, location, onLogout, time, theme, o
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(1.3); }
         }
-        .brand { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
-        .brand b { color: ${COLORS.primary}; font-weight: 800; }
+        .brand { 
+          font-size: 24px; 
+          font-weight: 900; 
+          background: linear-gradient(90deg, #00E5A0, #00BFFF);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          letter-spacing: -0.04em; 
+          line-height: 1; 
+          filter: drop-shadow(0 2px 10px rgba(0, 229, 160, 0.4));
+        }
+        .brand b { font-weight: 900; }
+        .slogan { 
+          font-size: 11px; 
+          color: rgba(255,255,255,0.7); 
+          font-weight: 600; 
+          margin-top: 3px; 
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
+        }
         .live {
           font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
           color: ${COLORS.warn};

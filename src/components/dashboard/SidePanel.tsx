@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { COLORS } from "@/lib/dashboard-data";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // ═══════════════════════════════════════════════════════════════════
 // 🏆 SIDEPANEL – 5 Fonctionnalités Phares Hackathon
@@ -48,9 +49,16 @@ const LIGNES = [
   { num: "119", trajet: "Ambohipo → Analakely", fiabilite: 79, votes: 133, etat: "fluide", color: "#00E5A0" },
 ];
 
-export default function SidePanel({ onSignalIncident }: {
+export default function SidePanel({ 
+  onSignalIncident,
+  simulationMode = false,
+  onToggleSimulation
+}: {
   onSignalIncident?: () => void;
+  simulationMode?: boolean;
+  onToggleSimulation?: () => void;
 }) {
+  const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>("multimodal");
   const [isRecording, setIsRecording] = useState(false);
   const [transcription, setTranscription] = useState("");
@@ -113,16 +121,26 @@ export default function SidePanel({ onSignalIncident }: {
 
   return (
     <aside className="panel">
+      {/* Bouton Simulation Jury */}
+      <div style={{ padding: "12px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <button
+          onClick={onToggleSimulation}
+          className={`sim-btn ${simulationMode ? "active" : ""}`}
+        >
+          {simulationMode ? t("sim.stop") : t("sim.start")}
+        </button>
+      </div>
+
       {/* Onglets */}
       <div className="tabs">
-        {TABS.map(t => (
+        {TABS.map(tData => (
           <button
-            key={t.id}
-            className={`tab ${tab === t.id ? "active" : ""}`}
-            onClick={() => setTab(t.id)}
+            key={tData.id}
+            className={`tab ${tab === tData.id ? "active" : ""}`}
+            onClick={() => setTab(tData.id)}
           >
-            <span className="tab-icon">{t.icon}</span>
-            <span className="tab-label">{t.label}</span>
+            <span className="tab-icon">{tData.icon}</span>
+            <span className="tab-label">{t(`tab.${tData.id === "multimodal" ? "route" : tData.id === "vocal" ? "voice" : tData.id === "meteo" ? "meteo" : tData.id === "confiance" ? "trust" : "escape"}`)}</span>
           </button>
         ))}
       </div>
@@ -131,13 +149,13 @@ export default function SidePanel({ onSignalIncident }: {
       {tab === "multimodal" && (
         <div className="content">
           <div className="section-header">
-            <h2 className="section-title">🔀 Itinéraire Multimodal</h2>
-            <span className="section-sub">Taxi-be + Marche à pied optimisés</span>
+            <h2 className="section-title">{t("route.title")}</h2>
+            <span className="section-sub">{t("route.sub")}</span>
           </div>
 
           <div className="alert-banner">
             <span>⚠️</span>
-            <span>Bouchon détecté à <b>Anosizato</b>. Itinéraire alternatif calculé par ARIA.</span>
+            <span>{t("route.alert")}</span>
           </div>
 
           <div className="steps">
@@ -149,7 +167,7 @@ export default function SidePanel({ onSignalIncident }: {
                 </div>
                 <div className="step-body">
                   <div className="step-top">
-                    <span className="step-label">{step.label}</span>
+                    <span className="step-label">{step.type === 'walk' ? t("route.walk") : step.label}</span>
                     <span className={`step-badge ${step.status}`}>{step.status}</span>
                   </div>
                   <div className="step-route">{step.from} → {step.to}</div>
@@ -160,12 +178,12 @@ export default function SidePanel({ onSignalIncident }: {
           </div>
 
           <div className="total-bar">
-            <span>⏱ Durée totale estimée</span>
+            <span>{t("route.total")}</span>
             <strong>29 min</strong>
           </div>
 
           <button className="cta-btn" onClick={() => window.dispatchEvent(new CustomEvent("aria-open", { detail: { message: "ARIA, donne-moi le meilleur itinéraire multimodal depuis Ivandry vers Analakely en combinant Taxi-be et marche à pied. Il y a un bouchon à Anosizato." } }))}>
-            🤖 Demander à ARIA
+            {t("route.ask")}
           </button>
         </div>
       )}
@@ -174,8 +192,8 @@ export default function SidePanel({ onSignalIncident }: {
       {tab === "vocal" && (
         <div className="content">
           <div className="section-header">
-            <h2 className="section-title">🎙️ Signalement Vocal</h2>
-            <span className="section-sub">Parlez en malgache ou français</span>
+            <h2 className="section-title">{t("voice.title")}</h2>
+            <span className="section-sub">{t("voice.sub")}</span>
           </div>
 
           <div className="voice-center">
@@ -186,7 +204,7 @@ export default function SidePanel({ onSignalIncident }: {
             >
               <div className="mic-icon">{isRecording ? "⏹" : "🎙️"}</div>
               <span className="mic-label">
-                {isRecording ? "Relâcher pour envoyer" : "Maintenir pour parler"}
+                {isRecording ? t("voice.release") : t("voice.hold")}
               </span>
             </button>
             {isRecording && (
@@ -197,23 +215,23 @@ export default function SidePanel({ onSignalIncident }: {
           </div>
 
           <div className="examples">
-            <p className="example-title">💬 Exemples :</p>
+            <p className="example-title">{t("voice.examples")}</p>
             <p className="example">&ldquo;Gros bouchon à Anosizato, ça ne bouge plus !&rdquo;</p>
             <p className="example">&ldquo;Misy hery be eto Ampasika.&rdquo;</p>
           </div>
 
           {recordingStatus === "processing" && (
             <div className="processing">
-              <div className="spinner-sm" /> ARIA analyse votre message…
+              <div className="spinner-sm" /> {t("voice.analyze")}
             </div>
           )}
 
           {recordingStatus === "done" && transcription && (
             <div className="transcription-box">
-              <div className="trans-label">✅ Transcription ARIA</div>
+              <div className="trans-label">{t("voice.transcription")}</div>
               <div className="trans-text">&ldquo;{transcription}&rdquo;</div>
               <button className="confirm-btn" onClick={() => { setTranscription(""); setRecordingStatus("idle"); onSignalIncident?.(); }}>
-                Confirmer et envoyer
+                {t("voice.confirm")}
               </button>
             </div>
           )}
@@ -224,14 +242,14 @@ export default function SidePanel({ onSignalIncident }: {
       {tab === "meteo" && (
         <div className="content">
           <div className="section-header">
-            <h2 className="section-title">🔮 Météo du Trafic</h2>
-            <span className="section-sub">Prédictions intelligentes d&apos;ARIA</span>
+            <h2 className="section-title">{t("meteo.title")}</h2>
+            <span className="section-sub">{t("meteo.sub")}</span>
           </div>
 
           <div className="aria-prediction">
             <div className="aria-avatar">🤖</div>
             <div className="aria-bubble">
-              Demain est un <b>vendredi de fin de mois</b>. Le trafic vers le centre-ville sera saturé dès <b>15h</b>. Je recommande d&apos;anticiper ton départ à <b>14h</b> ou de choisir la voie via Ambohipo.
+              {t("meteo.aria")}
             </div>
           </div>
 
@@ -261,8 +279,8 @@ export default function SidePanel({ onSignalIncident }: {
       {tab === "confiance" && (
         <div className="content">
           <div className="section-header">
-            <h2 className="section-title">⭐ Fiabilité des Lignes</h2>
-            <span className="section-sub">Votes communautaires en temps réel</span>
+            <h2 className="section-title">{t("trust.title")}</h2>
+            <span className="section-sub">{t("trust.sub")}</span>
           </div>
 
           <div className="lignes">
@@ -274,7 +292,7 @@ export default function SidePanel({ onSignalIncident }: {
                   </div>
                   <div className="ligne-info">
                     <div className="ligne-trajet">{l.trajet}</div>
-                    <div className="ligne-votes">{l.votes} votes</div>
+                    <div className="ligne-votes">{l.votes} {t("trust.votes")}</div>
                   </div>
                   <div className={`ligne-etat etat-${l.etat}`}>{l.etat}</div>
                 </div>
@@ -282,7 +300,7 @@ export default function SidePanel({ onSignalIncident }: {
                   <div className="trust-bar" style={{ width: `${l.fiabilite}%`, background: l.color }} />
                 </div>
                 <div className="vote-row">
-                  <span className="trust-pct" style={{ color: l.color }}>{l.fiabilite}% fiable</span>
+                  <span className="trust-pct" style={{ color: l.color }}>{l.fiabilite}% {t("trust.reliable")}</span>
                   <div className="vote-btns">
                     <button
                       className={`vote-btn up ${votes[l.num] === "up" ? "active" : ""}`}
@@ -304,16 +322,16 @@ export default function SidePanel({ onSignalIncident }: {
       {tab === "escape" && (
         <div className="content">
           <div className="section-header">
-            <h2 className="section-title">🚨 Sortie de Secours</h2>
-            <span className="section-sub">Analyse GPS en temps réel par ARIA</span>
+            <h2 className="section-title">{t("escape.title")}</h2>
+            <span className="section-sub">{t("escape.sub")}</span>
           </div>
 
           {!escapeActive && !escapeAnalyzing && (
             <div className="escape-intro">
               <div className="escape-intro-icon">🛑</div>
-              <p>Coincé dans un embouteillage&nbsp;? ARIA analyse votre position GPS et les rapports communautaires pour vous proposer une <b>sortie de secours immédiate</b>.</p>
+              <p>{t("escape.intro")}</p>
               <button className="escape-scan-btn" onClick={triggerEscapeAnalysis}>
-                📡 Analyser ma position
+                {t("escape.scan")}
               </button>
             </div>
           )}
@@ -324,7 +342,7 @@ export default function SidePanel({ onSignalIncident }: {
                 <div className="radar" />
                 <div className="radar-dot" />
               </div>
-              <p>ARIA scanne les axes autour de vous…</p>
+              <p>{t("escape.scanning")}</p>
               <div className="scan-bars">
                 <div className="scan-bar" style={{animationDelay: '0s'}} />
                 <div className="scan-bar" style={{animationDelay: '0.2s'}} />
@@ -340,14 +358,14 @@ export default function SidePanel({ onSignalIncident }: {
               <div className="escape-alert">
                 <span className="escape-alert-icon">⚠️</span>
                 <div>
-                  <strong>Blocage détecté — 2.2 km sur votre axe</strong>
-                  <p>Temps d&apos;attente estimé : <b style={{color: '#FF3D00'}}>~45 min</b></p>
+                  <strong>{t("escape.blocked")}</strong>
+                  <p>{t("escape.wait")} <b style={{color: '#FF3D00'}}>~45 min</b></p>
                 </div>
               </div>
 
               {/* Graphique de congestion */}
               <div className="congestion-graph">
-                <div className="graph-title">Congestion sur votre axe</div>
+                <div className="graph-title">{t("escape.graph")}</div>
                 <div className="graph-bars">
                   {ESCAPE_CONGESTION_DATA.map((d, i) => (
                     <div key={i} className="graph-col">
@@ -364,9 +382,9 @@ export default function SidePanel({ onSignalIncident }: {
                   ))}
                 </div>
                 <div className="graph-legend">
-                  <span className="leg"><span className="leg-dot" style={{background:'#00E5A0'}} /> Fluide</span>
-                  <span className="leg"><span className="leg-dot" style={{background:'#FFB800'}} /> Dense</span>
-                  <span className="leg"><span className="leg-dot" style={{background:'#FF3D00'}} /> Bloqué</span>
+                  <span className="leg"><span className="leg-dot" style={{background:'#00E5A0'}} /> {t("escape.fluid")}</span>
+                  <span className="leg"><span className="leg-dot" style={{background:'#FFB800'}} /> {t("escape.dense")}</span>
+                  <span className="leg"><span className="leg-dot" style={{background:'#FF3D00'}} /> {t("escape.blocked_short")}</span>
                 </div>
               </div>
 
@@ -374,7 +392,7 @@ export default function SidePanel({ onSignalIncident }: {
               <div className="aria-prediction">
                 <div className="aria-avatar">🤖</div>
                 <div className="aria-bubble">
-                  Le bus est bloqué pour au moins <b>45 minutes</b>. Je vous conseille de <b>descendre au prochain arrêt</b> (à 150m) et de marcher jusqu&apos;à l&apos;axe parallèle pour prendre la <b>ligne 194</b> qui roule parfaitement.
+                  {t("escape.aria")}
                 </div>
               </div>
 
@@ -396,12 +414,12 @@ export default function SidePanel({ onSignalIncident }: {
               </div>
 
               <div className="total-bar">
-                <span>⏱ Gain estimé</span>
-                <strong style={{color: '#00E5A0'}}>33 min gagnées</strong>
+                <span>{t("escape.gain")}</span>
+                <strong style={{color: '#00E5A0'}}>{t("escape.gain_val")}</strong>
               </div>
 
               <button className="cta-btn" onClick={() => window.dispatchEvent(new CustomEvent("aria-open", { detail: { message: "ARIA, mon bus est bloqué à Anosizato depuis 10 min. Analyse ma position GPS et donne-moi la sortie de secours la plus rapide. Quel arrêt descendre, quelle route à pied, et quel autre bus prendre ?" } }))}>
-                🤖 Détailler avec ARIA
+                {t("escape.ask")}
               </button>
             </>
           )}
@@ -416,6 +434,34 @@ export default function SidePanel({ onSignalIncident }: {
           border-radius: 22px;
           overflow: hidden;
           height: 100%;
+        }
+
+        /* ── SIMULATION BTN ── */
+        .sim-btn {
+          width: 100%;
+          padding: 10px;
+          border-radius: 12px;
+          background: rgba(255,255,255,0.05);
+          color: #fff;
+          font-size: 12px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: all 0.2s;
+          border: 1px solid rgba(255,255,255,0.1);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .sim-btn:hover { background: rgba(255,255,255,0.1); }
+        .sim-btn.active {
+          background: rgba(0,229,160,0.15);
+          border-color: #00E5A0;
+          color: #00E5A0;
+          box-shadow: 0 0 15px rgba(0,229,160,0.2);
+          animation: pulse-sim 2s infinite;
+        }
+        @keyframes pulse-sim {
+          0%, 100% { box-shadow: 0 0 10px rgba(0,229,160,0.2); }
+          50% { box-shadow: 0 0 20px rgba(0,229,160,0.5); }
         }
 
         /* ── TABS ── */

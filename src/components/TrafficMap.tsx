@@ -13,6 +13,7 @@
  *   import "leaflet/dist/leaflet.css";
  */
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Circle, Popup, Marker, useMap, Polyline } from "react-leaflet";
 import L from "leaflet";
@@ -24,9 +25,11 @@ interface Vehicle {
   id: string;
   lat: number;
   lng: number;
-  type: "taxibe" | "car" | "moto";
+  type: "taxibe" | "car" | "moto" | "pedestrian";
   line?: string;
   speed: number; // km/h simulé
+  dirLat?: number;
+  dirLng?: number;
 }
 
 import { HotZone, TrajetItem } from "@/types/dashboard";
@@ -35,6 +38,7 @@ interface Props {
   zones: HotZone[];
   selectedTrajet: TrajetItem | null;
   userCoords?: [number, number] | null;
+  simulationMode?: boolean;
 }
 
 // ─── Véhicules simulés autour d'Antananarivo ─────────────────────
@@ -67,9 +71,9 @@ function zoneRadius(level: number): number {
 
 // ─── Icône véhicule personnalisée ─────────────────────────────────
 function makeVehicleIcon(type: Vehicle["type"], line?: string): L.DivIcon {
-  const colors = { taxibe: "#00E5FF", car: "#FFB300", moto: "#A78BFA" };
+  const colors = { taxibe: "#00E5FF", car: "#FFB300", moto: "#A78BFA", pedestrian: "#00D4A4" };
   const color = colors[type];
-  const emoji = type === "taxibe" ? "🚌" : type === "moto" ? "🏍️" : "🚗";
+  const emoji = type === "taxibe" ? "🚌" : type === "moto" ? "🏍️" : type === "pedestrian" ? "🚶" : "🚗";
   const label = line ? `<div style="font-size:8px;font-weight:700;color:${color};text-align:center;letter-spacing:-.02em;margin-top:1px;">${line}</div>` : "";
 
   return L.divIcon({
@@ -314,37 +318,130 @@ function UserLocation() {
 }
 
 // ─── Animation des véhicules (simulation GPS) ────────────────────
-function useRealtimeVehicles(initial: Vehicle[]): Vehicle[] {
+function useRealtimeVehicles(initial: Vehicle[], simulationMode?: boolean, zones?: HotZone[]): Vehicle[] {
   const [vehicles, setVehicles] = useState<Vehicle[]>(initial);
 
   useEffect(() => {
-    // Charge les données initiales
-    supabase.from("vehicles").select("*").then(({ data }) => {
-      if (data) setVehicles(data);
-    });
+    // Si on n'est pas en mode simulation, on écoute juste Supabase
+    if (!simulationMode) {
+      supabase.from("vehicles").select("*").then(({ data }) => {
+        if (data && data.length > 0) setVehicles(data);
+        else setVehicles(initial);
+      });
 
-    // Écoute les mises à jour temps réel
-    const channel = supabase
-      .channel("vehicles-live")
-      .on("postgres_changes", {
-        event: "UPDATE",
-        schema: "public",
-        table: "vehicles",
-      }, payload => {
-        setVehicles(prev =>
-          prev.map(v => v.id === payload.new.id ? { ...v, ...payload.new } : v)
-        );
-      })
-      .subscribe();
+      const channel = supabase
+        .channel("vehicles-live")
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "vehicles" }, payload => {
+          setVehicles(prev => prev.map(v => v.id === payload.new.id ? { ...v, ...payload.new } : v));
+        }).subscribe();
+      return () => { supabase.removeChannel(channel); };
+    }
 
-    return () => { supabase.removeChannel(channel); };
-  }, []);
+    // MODE SIMULATION ACTIVE
+    let simVehicles: Vehicle[] = [...initial].map(v => ({
+      ...v,
+      dirLat: Math.random() - 0.5,
+      dirLng: Math.random() - 0.5
+    }));
+
+    // Générer 25 piétons
+    for (let i = 0; i < 25; i++) {
+      simVehicles.push({
+        id: `ped-${i}`, type: "pedestrian",
+        lat: -18.91 + (Math.random() - 0.5) * 0.08,
+        lng: 47.52 + (Math.random() - 0.5) * 0.08,
+        speed: 5 + Math.random() * 2,
+        dirLat: Math.random() - 0.5, dirLng: Math.random() - 0.5
+      });
+    }
+    // Générer 30 voitures
+    for (let i = 0; i < 30; i++) {
+      simVehicles.push({
+        id: `sim-car-${i}`, type: "car",
+        lat: -18.91 + (Math.random() - 0.5) * 0.1,
+        lng: 47.52 + (Math.random() - 0.5) * 0.1,
+        speed: 20 + Math.random() * 30,
+        dirLat: Math.random() - 0.5, dirLng: Math.random() - 0.5
+      });
+    }
+    // Générer 15 motos
+    for (let i = 0; i < 15; i++) {
+      simVehicles.push({
+        id: `sim-moto-${i}`, type: "moto",
+        lat: -18.91 + (Math.random() - 0.5) * 0.1,
+        lng: 47.52 + (Math.random() - 0.5) * 0.1,
+        speed: 35 + Math.random() * 20,
+        dirLat: Math.random() - 0.5, dirLng: Math.random() - 0.5
+      });
+    }
+
+    setVehicles(simVehicles);
+
+    let animationFrameId: number;
+    let lastTime = Date.now();
+
+    const updatePositions = () => {
+      const now = Date.now();
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      setVehicles(prev => prev.map(v => {
+        let currentSpeed = v.speed;
+        let inBouchon = false;
+
+        if (zones) {
+          for (const z of zones) {
+            if (z.level >= 80) {
+              const dist = Math.sqrt(Math.pow(v.lat - z.lat, 2) + Math.pow(v.lng - z.lng, 2));
+              if (dist < 0.004) { // Dans un bouchon
+                inBouchon = true; break;
+              }
+            }
+          }
+        }
+
+        // Effet bouchon : vitesse réduite à 5%
+        if (inBouchon && v.type !== "pedestrian") {
+          currentSpeed *= 0.05;
+        }
+
+        // Vitesse accélérée artificiellement pour la démo visuelle
+        const degPerSec = currentSpeed * 0.0000025 * 50; 
+        
+        let dLat = v.dirLat || (Math.random() - 0.5);
+        let dLng = v.dirLng || (Math.random() - 0.5);
+
+        // Changement de direction aléatoire (1% de chance)
+        if (Math.random() < 0.01) {
+          dLat = Math.random() - 0.5;
+          dLng = Math.random() - 0.5;
+        }
+
+        const len = Math.sqrt(dLat * dLat + dLng * dLng) || 1;
+        dLat /= len; dLng /= len;
+
+        let nextLat = v.lat + dLat * degPerSec * dt;
+        let nextLng = v.lng + dLng * degPerSec * dt;
+
+        // Limites de Tana
+        if (nextLat > -18.85 || nextLat < -18.96) dLat *= -1;
+        if (nextLng > 47.58 || nextLng < 47.48) dLng *= -1;
+
+        return { ...v, lat: nextLat, lng: nextLng, dirLat: dLat, dirLng: dLng };
+      }));
+
+      animationFrameId = requestAnimationFrame(updatePositions);
+    };
+
+    animationFrameId = requestAnimationFrame(updatePositions);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [simulationMode, zones]);
 
   return vehicles;
 }
 
 // ─── Légende ─────────────────────────────────────────────────────
-function MapLegend() {
+function MapLegend({ t, zones }: { t: any, zones: HotZone[] }) {
   return (
     <div style={{
       position: "absolute", bottom: 12, left: 12, zIndex: 1000,
@@ -355,32 +452,34 @@ function MapLegend() {
       color: "rgba(255,255,255,.7)",
     }}>
       <div style={{ fontWeight: 600, fontSize: 10, letterSpacing: ".08em", color: "rgba(255,255,255,.4)", marginBottom: 2, textTransform: "uppercase" }}>
-        Légende
+        {t("map.legend")}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF3D00", display: "inline-block", boxShadow: "0 0 6px #FF3D00" }} />
-        Bouchon ≥ 80%
+        {t("map.legend.jam")}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#FFB300", display: "inline-block", boxShadow: "0 0 6px #FFB300" }} />
-        Dense 60–79%
+        {t("map.legend.dense")}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
         <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#00D4A4", display: "inline-block" }} />
-        Fluide &lt; 60%
+        {t("map.legend.fluid")}
       </div>
       <div style={{ borderTop: "1px solid rgba(255,255,255,.08)", paddingTop: 6, display: "flex", flexDirection: "column", gap: 4 }}>
-        <div>🚌 Taxi-be (live GPS)</div>
-        <div>🚗 Voiture particulière</div>
-        <div>🏍️ Taxi-moto</div>
+        <div>{t("map.legend.bus")}</div>
+        <div>{t("map.legend.car")}</div>
+        <div>{t("map.legend.moto")}</div>
+        <div>{t("map.legend.pedestrian")}</div>
       </div>
     </div>
   );
 }
 
 // ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────
-export default function TrafficMap({ zones, selectedTrajet, userCoords }: Props) {
-  const vehicles = useRealtimeVehicles(INITIAL_VEHICLES);
+export default function TrafficMap({ zones, selectedTrajet, userCoords, simulationMode }: Props) {
+  const { t } = useLanguage();
+  const vehicles = useRealtimeVehicles(INITIAL_VEHICLES, simulationMode, zones);
   const [routeInfo, setRouteInfo] = useState<{ distKm: string, durCarMin: number, durFootMin: number } | null>(null);
 
   // Fix icônes Leaflet (Next.js)
@@ -535,15 +634,15 @@ export default function TrafficMap({ zones, selectedTrajet, userCoords }: Props)
             <Popup>
               <div style={{ fontSize: 12, minWidth: 140 }}>
                 <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                  {v.type === "taxibe" ? `🚌 Taxi-be ${v.line ?? ""}` : v.type === "moto" ? "🏍️ Taxi-moto" : "🚗 Véhicule"}
+                  {v.type === "taxibe" ? `🚌 Taxi-be ${v.line ?? ""}` : v.type === "moto" ? "🏍️ Taxi-moto" : v.type === "pedestrian" ? "🚶 Piéton" : "🚗 Voiture"}
                 </div>
                 <div style={{ color: "rgba(255,255,255,.55)" }}>
-                  Vitesse : <span style={{ color: v.speed < 10 ? "#FF3D00" : v.speed < 20 ? "#FFB300" : "#00D4A4", fontWeight: 600 }}>
+                  {t("map.speed")} <span style={{ color: v.speed < 10 ? "#FF3D00" : v.speed < 20 ? "#FFB300" : "#00D4A4", fontWeight: 600 }}>
                     {Math.round(v.speed)} km/h
                   </span>
                 </div>
                 <div style={{ color: "rgba(255,255,255,.4)", fontSize: 10, marginTop: 4 }}>
-                  GPS mis à jour il y a 2s
+                  {simulationMode ? t("map.sim_active") : t("map.gps_updated")}
                 </div>
               </div>
             </Popup>
@@ -577,7 +676,7 @@ export default function TrafficMap({ zones, selectedTrajet, userCoords }: Props)
       )}
 
       {/* Légende overlay */}
-      <MapLegend />
+      <MapLegend t={t} zones={zones} />
 
       <style jsx>{`
         .route-info-card {

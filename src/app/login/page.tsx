@@ -57,7 +57,10 @@ export default function Login() {
       <div className="login-card">
         <div className="logo-wrap">
           <div className="pulse" />
-          <h1 className="brand">Smart<b>Ambotaka</b></h1>
+          <h1 className="brand">Ambota<b>kany</b></h1>
+          <p className="slogan" style={{color: "rgba(255,255,255,0.6)", fontSize: "14px", marginTop: "8px", fontWeight: 500}}>
+            On transforme le blocage en destination réussie.
+          </p>
         </div>
         
         <p className="subtitle">Accédez à vos trajets personnalisés et signalez des incidents en temps réel.</p>
@@ -158,15 +161,24 @@ export default function Login() {
           background: ${COLORS.primary};
           box-shadow: 0 0 16px ${COLORS.primary};
           animation: pulse 1.5s ease-in-out infinite;
+          margin-bottom: 12px;
         }
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.5; transform: scale(1.3); }
         }
-        .brand {
-          font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin: 0;
+        .brand { 
+          font-size: 56px; 
+          font-weight: 900; 
+          background: linear-gradient(90deg, #00E5A0, #00BFFF);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          letter-spacing: -0.04em; 
+          line-height: 1; 
+          filter: drop-shadow(0 4px 20px rgba(0, 229, 160, 0.4));
+          margin-bottom: 0;
         }
-        .brand b { color: ${COLORS.primary}; font-weight: 800; }
+        .brand b { font-weight: 900; }
 
         .subtitle {
           text-align: center;

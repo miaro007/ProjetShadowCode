@@ -15,8 +15,10 @@ import Topbar from "@/components/dashboard/Topbar";
 import HeroBar from "@/components/dashboard/HeroBar";
 import SidePanel from "@/components/dashboard/SidePanel";
 import DestinationModal from "@/components/dashboard/DestinationModal";
+import LeftDrawer from "@/components/dashboard/LeftDrawer";
 import Toast from "@/components/ui/Toast";
 import SkeletonDashboard from "@/components/dashboard/SkeletonDashboard";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 // ═══════════════════════════════════════════════════════════════════
 // 🗺️ CARTE INTERACTIVE
@@ -54,7 +56,7 @@ const MapWithNoSSR = dynamic(() => import("@/components/TrafficMap"), {
 // ═══════════════════════════════════════════════════════════════════
 // 🏆 DASHBOARD PRINCIPAL
 // ═══════════════════════════════════════════════════════════════════
-export default function Dashboard() {
+function DashboardContent() {
   const router = useRouter();
 
   const [user, setUser] = useState<User | null>(null);
@@ -71,6 +73,7 @@ export default function Dashboard() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "info" | "warning" | "error" } | null>(null);
   const [selectedTrajet, setSelectedTrajet] = useState<TrajetItem | null>(null);
   const [signalCount, setSignalCount] = useState(0);
+  const [simulationMode, setSimulationMode] = useState(false);
 
   // ─── Auth ───
   useEffect(() => {
@@ -281,6 +284,9 @@ export default function Dashboard() {
           50% { opacity: 0.5; transform: scale(1.4); }
         }
       `}</style>
+      
+      <LeftDrawer />
+
       <Topbar
         displayName={displayName}
         location={location}
@@ -313,12 +319,14 @@ export default function Dashboard() {
               {zones.filter(z => z.level >= 85).length} zones critiques
             </div>
           </div>
-          <MapWithNoSSR zones={zones} selectedTrajet={selectedTrajet} userCoords={userCoords} />
+          <MapWithNoSSR zones={zones} selectedTrajet={selectedTrajet} userCoords={userCoords} simulationMode={simulationMode} />
         </div>
 
         {/* PANNEAU LATÉRAL */}
         <SidePanel
           onSignalIncident={handleSignalIncident}
+          simulationMode={simulationMode}
+          onToggleSimulation={() => setSimulationMode(!simulationMode)}
         />
       </div>
 
@@ -346,7 +354,9 @@ export default function Dashboard() {
           color: #111 !important;
         }
         .light-theme header.topbar,
-        .light-theme aside.side-panel,
+        .light-theme aside.panel,
+        .light-theme .left-drawer,
+        .light-theme .drawer-toggle,
         .light-theme .route-info-card,
         .light-theme .modal,
         .light-theme .map-badge {
@@ -370,7 +380,12 @@ export default function Dashboard() {
         .light-theme .stat b,
         .light-theme .panel-title,
         .light-theme .metric-val,
-        .light-theme .alert-title {
+        .light-theme .alert-title,
+        .light-theme .section-title,
+        .light-theme .step-label,
+        .light-theme .hist-route,
+        .light-theme .fav-name,
+        .light-theme .drawer-header h3 {
           color: #111 !important;
         }
         .light-theme .time { color: #007A55 !important; }
@@ -383,23 +398,54 @@ export default function Dashboard() {
         .light-theme .alert-desc,
         .light-theme .metric-label,
         .light-theme .logout,
-        .light-theme .theme-toggle {
+        .light-theme .theme-toggle,
+        .light-theme .setting-row,
+        .light-theme .total-bar {
           color: #111 !important;
           font-weight: 500;
         }
         .light-theme .input,
         .light-theme .mode,
         .light-theme .chip,
-        .light-theme .stat-item {
+        .light-theme .stat-item,
+        .light-theme .notif-item,
+        .light-theme .hist-item,
+        .light-theme .fav-item,
+        .light-theme .sim-btn,
+        .light-theme .nav-btn,
+        .light-theme .step,
+        .light-theme .total-bar {
           background: #fff !important;
           border-color: rgba(0,0,0,0.2) !important;
           color: #111 !important;
         }
         .light-theme .chip.active,
-        .light-theme .mode.active {
+        .light-theme .mode.active,
+        .light-theme .nav-btn.active,
+        .light-theme .sim-btn.active {
           background: rgba(0, 122, 85, 0.1) !important;
           border-color: #007A55 !important;
           color: #007A55 !important;
+        }
+        .light-theme .tab {
+          color: rgba(0,0,0,0.5) !important;
+        }
+        .light-theme .tab.active {
+          color: #007A55 !important;
+          border-bottom-color: #007A55 !important;
+          background: rgba(0,122,85,0.04) !important;
+        }
+        .light-theme .drawer-toggle:hover {
+          background: rgba(0,0,0,0.05) !important;
+          color: #007A55 !important;
+        }
+        .light-theme .notif-text,
+        .light-theme .hist-time,
+        .light-theme .fav-route,
+        .light-theme .section-sub,
+        .light-theme .step-route,
+        .light-theme .step-duration {
+          color: rgba(0,0,0,0.6) !important;
         }
         .light-theme .trajet-card {
           background: #fff !important;
@@ -463,12 +509,20 @@ export default function Dashboard() {
 
       <style jsx>{`
         .dashboard-container {
-          display: flex; flex-direction: column; height: 100vh;
-          background: #050811; color: #fff; overflow: hidden;
+          display: flex; flex-direction: column; min-height: 100vh;
+          background: #050811; color: #fff; overflow-x: hidden; overflow-y: auto;
           transition: background 0.3s ease, color 0.3s ease;
           position: relative;
         }
       `}</style>
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <LanguageProvider>
+      <DashboardContent />
+    </LanguageProvider>
   );
 }
