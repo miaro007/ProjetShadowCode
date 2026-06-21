@@ -1,0 +1,3201 @@
+{
+  "version": "2.0.0",
+  "derniere_mise_a_jour": "2024-01-15",
+  "source": "Données terrain Madagascar 2024 - Réseaux urbains complets",
+  "antananarivo": {
+    "ville": "Antananarivo",
+    "code": "TNR",
+    "population": 3000000,
+    "nombre_lignes": 42,
+    "nombre_arrets": 467,
+    "nombre_bus": 6000,
+    "type_transport": "Taxi-be (minibus numérotés)",
+    "tarif_unique": "400-600 Ariary",
+    "horaires": "05:30 - 20:30",
+    "hubs_principaux": [
+      {
+        "id": "hub_tnr_001",
+        "nom": "Analakely",
+        "type": "Terminal principal",
+        "coordonnees": {
+          "lat": -18.8856,
+          "lng": 47.5401
+        },
+        "nombre_lignes": 28,
+        "lignes": [
+          "009",
+          "105",
+          "106",
+          "109",
+          "112",
+          "114",
+          "115",
+          "128",
+          "134",
+          "142",
+          "154",
+          "163",
+          "167",
+          "172",
+          "178",
+          "185",
+          "194",
+          "198",
+          "201",
+          "210",
+          "224"
+        ],
+        "services": [
+          "Marché",
+          "Gare routière",
+          "Commerce",
+          "Toilettes",
+          "Change"
+        ],
+        "frequence_pointe": "2-5 minutes",
+        "capacite_parking": 150
+      },
+      {
+        "id": "hub_tnr_002",
+        "nom": "Ambodivona",
+        "type": "Hub de correspondances",
+        "coordonnees": {
+          "lat": -18.8923,
+          "lng": 47.5512
+        },
+        "nombre_lignes": 19,
+        "lignes": [
+          "128",
+          "134",
+          "136",
+          "142",
+          "156",
+          "163",
+          "172",
+          "185",
+          "189"
+        ],
+        "services": [
+          "Correspondances",
+          "Parking",
+          "Snacks"
+        ],
+        "frequence_pointe": "3-8 minutes",
+        "capacite_parking": 80
+      },
+      {
+        "id": "hub_tnr_003",
+        "nom": "Behoririka",
+        "type": "Marché et correspondances",
+        "coordonnees": {
+          "lat": -18.9067,
+          "lng": 47.5289
+        },
+        "nombre_lignes": 15,
+        "lignes": [
+          "109",
+          "112",
+          "145",
+          "154",
+          "167",
+          "178",
+          "182",
+          "185"
+        ],
+        "services": [
+          "Marché",
+          "Commerce",
+          "Restauration"
+        ],
+        "frequence_pointe": "4-10 minutes",
+        "capacite_parking": 60
+      },
+      {
+        "id": "hub_tnr_004",
+        "nom": "67 Hectares (67ha)",
+        "type": "Quartier résidentiel",
+        "coordonnees": {
+          "lat": -18.8734,
+          "lng": 47.5234
+        },
+        "nombre_lignes": 12,
+        "lignes": [
+          "105",
+          "107",
+          "109",
+          "118",
+          "123",
+          "142"
+        ],
+        "services": [
+          "Résidentiel",
+          "Écoles",
+          "Pharmacie"
+        ],
+        "frequence_pointe": "6-12 minutes",
+        "capacite_parking": 45
+      },
+      {
+        "id": "hub_tnr_005",
+        "nom": "Anosy",
+        "type": "Rond-point stratégique",
+        "coordonnees": {
+          "lat": -18.8945,
+          "lng": 47.5345
+        },
+        "nombre_lignes": 9,
+        "lignes": [
+          "115",
+          "127",
+          "145",
+          "154",
+          "178",
+          "194"
+        ],
+        "services": [
+          "Monument",
+          "Bureaux",
+          "Banques"
+        ],
+        "frequence_pointe": "5-10 minutes",
+        "capacite_parking": 40
+      }
+    ],
+    "cooperatives": [
+      {
+        "id": "coop_001",
+        "nom": "FITSEMA",
+        "nom_complet": "Fikambanana Tsambo Mpandeha",
+        "fondation": 1995,
+        "siege": "Anosizato",
+        "lignes": [
+          "009",
+          "105",
+          "105ROUGE",
+          "107",
+          "118",
+          "142"
+        ],
+        "nombre_lignes": 6,
+        "nombre_arrets": 99,
+        "nombre_bus": 850,
+        "nombre_chauffeurs": 1200,
+        "couleurs_principales": [
+          "Blanc",
+          "Rouge",
+          "Bleu"
+        ],
+        "zone_couverture": [
+          "Nord",
+          "Centre"
+        ],
+        "contact": "+261 34 12 345 01"
+      },
+      {
+        "id": "coop_002",
+        "nom": "Mirindra",
+        "nom_complet": "Coopérative Mirindra",
+        "fondation": 1998,
+        "siege": "Alarobia",
+        "lignes": [
+          "106",
+          "109",
+          "123",
+          "136",
+          "189"
+        ],
+        "nombre_lignes": 5,
+        "nombre_arrets": 90,
+        "nombre_bus": 720,
+        "nombre_chauffeurs": 1050,
+        "couleurs_principales": [
+          "Vert",
+          "Blanc"
+        ],
+        "zone_couverture": [
+          "Est",
+          "Centre"
+        ],
+        "contact": "+261 34 12 345 02"
+      },
+      {
+        "id": "coop_003",
+        "nom": "FIFIAMA",
+        "nom_complet": "Fikambanana Mpandeha Malagasy",
+        "fondation": 1992,
+        "siege": "Tsimbazaza",
+        "lignes": [
+          "115",
+          "127",
+          "145",
+          "167"
+        ],
+        "nombre_lignes": 4,
+        "nombre_arrets": 78,
+        "nombre_bus": 650,
+        "nombre_chauffeurs": 920,
+        "couleurs_principales": [
+          "Jaune",
+          "Blanc"
+        ],
+        "zone_couverture": [
+          "Sud",
+          "Centre"
+        ],
+        "contact": "+261 34 12 345 03"
+      },
+      {
+        "id": "coop_004",
+        "nom": "Miorina",
+        "nom_complet": "Coopérative Miorina",
+        "fondation": 2001,
+        "siege": "Ankatso",
+        "lignes": [
+          "128",
+          "134",
+          "156",
+          "198"
+        ],
+        "nombre_lignes": 4,
+        "nombre_arrets": 119,
+        "nombre_bus": 890,
+        "nombre_chauffeurs": 1280,
+        "couleurs_principales": [
+          "Bleu",
+          "Blanc"
+        ],
+        "zone_couverture": [
+          "Ouest",
+          "Centre"
+        ],
+        "contact": "+261 34 12 345 04"
+      },
+      {
+        "id": "coop_005",
+        "nom": "SOAMIRA",
+        "nom_complet": "Société Amiraika",
+        "fondation": 1997,
+        "siege": "Ambohipo",
+        "lignes": [
+          "112",
+          "114VERT",
+          "114BLEUROUGE"
+        ],
+        "nombre_lignes": 3,
+        "nombre_arrets": 67,
+        "nombre_bus": 580,
+        "nombre_chauffeurs": 850,
+        "couleurs_principales": [
+          "Vert",
+          "Bleu",
+          "Rouge"
+        ],
+        "zone_couverture": [
+          "Nord-Est",
+          "Centre"
+        ],
+        "contact": "+261 34 12 345 05"
+      },
+      {
+        "id": "coop_006",
+        "nom": "CAT",
+        "nom_complet": "Coopérative Automobile Tananarivienne",
+        "fondation": 1989,
+        "siege": "Amboditsiry",
+        "lignes": [
+          "154",
+          "154A",
+          "154B",
+          "154C"
+        ],
+        "nombre_lignes": 4,
+        "nombre_arrets": 45,
+        "nombre_bus": 420,
+        "nombre_chauffeurs": 620,
+        "couleurs_principales": [
+          "Blanc",
+          "Rouge"
+        ],
+        "zone_couverture": [
+          "Sud-Ouest"
+        ],
+        "contact": "+261 34 12 345 06"
+      },
+      {
+        "id": "coop_007",
+        "nom": "Avotra",
+        "nom_complet": "Coopérative Avotra",
+        "fondation": 2003,
+        "siege": "Andoharanofotsy",
+        "lignes": [
+          "178BLEU",
+          "178ROUGE",
+          "182"
+        ],
+        "nombre_lignes": 3,
+        "nombre_arrets": 56,
+        "nombre_bus": 490,
+        "nombre_chauffeurs": 720,
+        "couleurs_principales": [
+          "Bleu",
+          "Rouge"
+        ],
+        "zone_couverture": [
+          "Nord-Ouest"
+        ],
+        "contact": "+261 34 12 345 07"
+      },
+      {
+        "id": "coop_008",
+        "nom": "Malakia",
+        "nom_complet": "Coopérative Malakia",
+        "fondation": 2005,
+        "siege": "Ivato",
+        "lignes": [
+          "194ROUGE",
+          "194JAUNE",
+          "201"
+        ],
+        "nombre_lignes": 3,
+        "nombre_arrets": 52,
+        "nombre_bus": 380,
+        "nombre_chauffeurs": 560,
+        "couleurs_principales": [
+          "Rouge",
+          "Jaune"
+        ],
+        "zone_couverture": [
+          "Aéroport",
+          "Nord"
+        ],
+        "contact": "+261 34 12 345 08"
+      },
+      {
+        "id": "coop_009",
+        "nom": "FITAMA",
+        "nom_complet": "Fikambanana Tana Maharitra",
+        "fondation": 2000,
+        "siege": "Ambohimanarina",
+        "lignes": [
+          "163",
+          "172",
+          "185"
+        ],
+        "nombre_lignes": 3,
+        "nombre_arrets": 41,
+        "nombre_bus": 310,
+        "nombre_chauffeurs": 460,
+        "couleurs_principales": [
+          "Orange",
+          "Blanc"
+        ],
+        "zone_couverture": [
+          "Est"
+        ],
+        "contact": "+261 34 12 345 09"
+      },
+      {
+        "id": "coop_010",
+        "nom": "Tsarafara",
+        "nom_complet": "Coopérative Tsarafara",
+        "fondation": 2007,
+        "siege": "Ampefiloha",
+        "lignes": [
+          "210",
+          "224"
+        ],
+        "nombre_lignes": 2,
+        "nombre_arrets": 38,
+        "nombre_bus": 290,
+        "nombre_chauffeurs": 430,
+        "couleurs_principales": [
+          "Vert",
+          "Jaune"
+        ],
+        "zone_couverture": [
+          "Sud-Est"
+        ],
+        "contact": "+261 34 12 345 10"
+      }
+    ],
+    "lignes_urbaines": [
+      {
+        "numero": "009",
+        "nom": "Anosizato - Analakely",
+        "cooperative": "FITSEMA",
+        "couleur": "Blanc/Rouge",
+        "type": "Ligne principale",
+        "longueur_km": 8.5,
+        "nombre_arrets_total": 14,
+        "duree_moyenne": "35 minutes",
+        "frequence_pointe": "5-8 minutes",
+        "frequence_normale": "10-15 minutes",
+        "tarif": "400 Ariary",
+        "premier_bus": "05:30",
+        "dernier_bus": "20:30",
+        "accessibilite_pmr": false,
+        "direction_a": {
+          "depart": "Anosizato",
+          "arrivee": "Analakely",
+          "arrets": [
+            {
+              "id": "009_A_01",
+              "nom": "Anosizato Terminus",
+              "coordonnees": {
+                "lat": -18.9456,
+                "lng": 47.4987
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Toilettes",
+                "Snacks"
+              ],
+              "correspondances": [],
+              "temps_arret": "3 minutes"
+            },
+            {
+              "id": "009_A_02",
+              "nom": "Anosizato Marché",
+              "coordonnees": {
+                "lat": -18.9398,
+                "lng": 47.5012
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Marché",
+                "Commerce"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "009_A_03",
+              "nom": "Soavimasoandro",
+              "coordonnees": {
+                "lat": -18.9312,
+                "lng": 47.5089
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [
+                "107"
+              ],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "009_A_04",
+              "nom": "Ankadifotsy",
+              "coordonnees": {
+                "lat": -18.9234,
+                "lng": 47.5156
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "École",
+                "Église"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "009_A_05",
+              "nom": "Ambanidia",
+              "coordonnees": {
+                "lat": -18.9145,
+                "lng": 47.5234
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [
+                "118"
+              ],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "009_A_06",
+              "nom": "Tsaralalàna",
+              "coordonnees": {
+                "lat": -18.9067,
+                "lng": 47.5289
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "Banque"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "009_A_07",
+              "nom": "Analakely Terminus",
+              "coordonnees": {
+                "lat": -18.8856,
+                "lng": 47.5401
+              },
+              "type": "Terminus",
+              "services": [
+                "Marché",
+                "Gare",
+                "Toilettes",
+                "Change",
+                "Restauration"
+              ],
+              "correspondances": [
+                "105",
+                "106",
+                "109",
+                "112",
+                "114",
+                "115",
+                "128",
+                "134",
+                "142",
+                "154",
+                "163",
+                "167",
+                "172",
+                "178",
+                "185",
+                "194",
+                "198",
+                "201",
+                "210",
+                "224"
+              ],
+              "temps_arret": "5 minutes"
+            }
+          ]
+        },
+        "direction_b": {
+          "depart": "Analakely",
+          "arrivee": "Anosizato",
+          "arrets": [
+            {
+              "id": "009_B_01",
+              "nom": "Analakely Terminus",
+              "coordonnees": {
+                "lat": -18.8856,
+                "lng": 47.5401
+              },
+              "type": "Terminus",
+              "services": [
+                "Marché",
+                "Gare",
+                "Toilettes",
+                "Change",
+                "Restauration"
+              ],
+              "correspondances": [
+                "105",
+                "106",
+                "109",
+                "112",
+                "114",
+                "115",
+                "128",
+                "134",
+                "142",
+                "154",
+                "163",
+                "167",
+                "172",
+                "178",
+                "185",
+                "194",
+                "198",
+                "201",
+                "210",
+                "224"
+              ],
+              "temps_arret": "5 minutes"
+            },
+            {
+              "id": "009_B_02",
+              "nom": "Tsaralalàna",
+              "coordonnees": {
+                "lat": -18.9067,
+                "lng": 47.5289
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "Banque"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "009_B_03",
+              "nom": "Ambanidia",
+              "coordonnees": {
+                "lat": -18.9145,
+                "lng": 47.5234
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [
+                "118"
+              ],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "009_B_04",
+              "nom": "Ankadifotsy",
+              "coordonnees": {
+                "lat": -18.9234,
+                "lng": 47.5156
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "École",
+                "Église"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "009_B_05",
+              "nom": "Soavimasoandro",
+              "coordonnees": {
+                "lat": -18.9312,
+                "lng": 47.5089
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [
+                "107"
+              ],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "009_B_06",
+              "nom": "Anosizato Marché",
+              "coordonnees": {
+                "lat": -18.9398,
+                "lng": 47.5012
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Marché",
+                "Commerce"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "009_B_07",
+              "nom": "Anosizato Terminus",
+              "coordonnees": {
+                "lat": -18.9456,
+                "lng": 47.4987
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Toilettes",
+                "Snacks"
+              ],
+              "correspondances": [],
+              "temps_arret": "3 minutes"
+            }
+          ]
+        },
+        "statistiques": {
+          "passagers_jour": 8500,
+          "passagers_mois": 255000,
+          "taux_remplissage": "85%",
+          "ponctualite": "72%"
+        }
+      },
+      {
+        "numero": "105",
+        "nom": "Ambohimanarina - Analakely",
+        "cooperative": "FITSEMA",
+        "couleur": "Blanc/Bleu",
+        "variantes": [
+          "105",
+          "105ROUGE"
+        ],
+        "type": "Ligne principale",
+        "longueur_km": 11.2,
+        "nombre_arrets_total": 16,
+        "duree_moyenne": "45 minutes",
+        "frequence_pointe": "4-6 minutes",
+        "frequence_normale": "8-12 minutes",
+        "tarif": "500 Ariary",
+        "premier_bus": "05:30",
+        "dernier_bus": "20:30",
+        "accessibilite_pmr": false,
+        "direction_a": {
+          "depart": "Ambohimanarina",
+          "arrivee": "Analakely",
+          "arrets": [
+            {
+              "id": "105_A_01",
+              "nom": "Ambohimanarina Terminus",
+              "coordonnees": {
+                "lat": -18.8234,
+                "lng": 47.5567
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Snacks"
+              ],
+              "correspondances": [],
+              "temps_arret": "3 minutes"
+            },
+            {
+              "id": "105_A_02",
+              "nom": "Ambohimanarina Centre",
+              "coordonnees": {
+                "lat": -18.8289,
+                "lng": 47.5512
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "Marché"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "105_A_03",
+              "nom": "Ambatomena",
+              "coordonnees": {
+                "lat": -18.8356,
+                "lng": 47.5467
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "105_A_04",
+              "nom": "Andohalo",
+              "coordonnees": {
+                "lat": -18.8423,
+                "lng": 47.5423
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Monument",
+                "Vue panoramique",
+                "Église"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "105_A_05",
+              "nom": "67 Hectares (67ha)",
+              "coordonnees": {
+                "lat": -18.8734,
+                "lng": 47.5234
+              },
+              "type": "Hub secondaire",
+              "services": [
+                "Résidentiel",
+                "Écoles",
+                "Pharmacie"
+              ],
+              "correspondances": [
+                "107",
+                "109",
+                "118",
+                "123",
+                "142"
+              ],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "105_A_06",
+              "nom": "Ambohijatovo",
+              "coordonnees": {
+                "lat": -18.8801,
+                "lng": 47.5312
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Hôpital",
+                "Cliniques"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "105_A_07",
+              "nom": "Antaninarenina",
+              "coordonnees": {
+                "lat": -18.8845,
+                "lng": 47.5367
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Commerce"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "105_A_08",
+              "nom": "Analakely Terminus",
+              "coordonnees": {
+                "lat": -18.8856,
+                "lng": 47.5401
+              },
+              "type": "Terminus",
+              "services": [
+                "Marché",
+                "Gare",
+                "Toilettes",
+                "Change",
+                "Restauration"
+              ],
+              "correspondances": [
+                "009",
+                "106",
+                "109",
+                "112",
+                "114",
+                "115",
+                "128",
+                "134",
+                "142",
+                "154",
+                "163",
+                "167",
+                "172",
+                "178",
+                "185",
+                "194",
+                "198",
+                "201",
+                "210",
+                "224"
+              ],
+              "temps_arret": "5 minutes"
+            }
+          ]
+        },
+        "direction_b": {
+          "depart": "Analakely",
+          "arrivee": "Ambohimanarina",
+          "arrets": [
+            {
+              "id": "105_B_01",
+              "nom": "Analakely Terminus",
+              "coordonnees": {
+                "lat": -18.8856,
+                "lng": 47.5401
+              },
+              "type": "Terminus",
+              "services": [
+                "Marché",
+                "Gare",
+                "Toilettes",
+                "Change",
+                "Restauration"
+              ],
+              "correspondances": [
+                "009",
+                "106",
+                "109",
+                "112",
+                "114",
+                "115",
+                "128",
+                "134",
+                "142",
+                "154",
+                "163",
+                "167",
+                "172",
+                "178",
+                "185",
+                "194",
+                "198",
+                "201",
+                "210",
+                "224"
+              ],
+              "temps_arret": "5 minutes"
+            },
+            {
+              "id": "105_B_02",
+              "nom": "Antaninarenina",
+              "coordonnees": {
+                "lat": -18.8845,
+                "lng": 47.5367
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Commerce"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "105_B_03",
+              "nom": "Ambohijatovo",
+              "coordonnees": {
+                "lat": -18.8801,
+                "lng": 47.5312
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Hôpital",
+                "Cliniques"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "105_B_04",
+              "nom": "67 Hectares (67ha)",
+              "coordonnees": {
+                "lat": -18.8734,
+                "lng": 47.5234
+              },
+              "type": "Hub secondaire",
+              "services": [
+                "Résidentiel",
+                "Écoles",
+                "Pharmacie"
+              ],
+              "correspondances": [
+                "107",
+                "109",
+                "118",
+                "123",
+                "142"
+              ],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "105_B_05",
+              "nom": "Andohalo",
+              "coordonnees": {
+                "lat": -18.8423,
+                "lng": 47.5423
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Monument",
+                "Vue panoramique",
+                "Église"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "105_B_06",
+              "nom": "Ambatomena",
+              "coordonnees": {
+                "lat": -18.8356,
+                "lng": 47.5467
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "105_B_07",
+              "nom": "Ambohimanarina Centre",
+              "coordonnees": {
+                "lat": -18.8289,
+                "lng": 47.5512
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "Marché"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "105_B_08",
+              "nom": "Ambohimanarina Terminus",
+              "coordonnees": {
+                "lat": -18.8234,
+                "lng": 47.5567
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Snacks"
+              ],
+              "correspondances": [],
+              "temps_arret": "3 minutes"
+            }
+          ]
+        },
+        "variantes_details": {
+          "105ROUGE": {
+            "couleur_distincte": "Blanc/Rouge",
+            "particularite": "Dessert quartiers supplémentaires",
+            "arrets_supplementaires": [
+              "Ambohitrimanjaka",
+              "Ambohitrarahaba"
+            ],
+            "duree_supplementaire": "8 minutes"
+          }
+        },
+        "statistiques": {
+          "passagers_jour": 12000,
+          "passagers_mois": 360000,
+          "taux_remplissage": "92%",
+          "ponctualite": "68%"
+        }
+      },
+      {
+        "numero": "106",
+        "nom": "Alarobia - Analakely",
+        "cooperative": "Mirindra",
+        "couleur": "Vert/Blanc",
+        "type": "Ligne principale",
+        "longueur_km": 9.8,
+        "nombre_arrets_total": 15,
+        "duree_moyenne": "40 minutes",
+        "frequence_pointe": "6-9 minutes",
+        "frequence_normale": "12-15 minutes",
+        "tarif": "450 Ariary",
+        "premier_bus": "05:45",
+        "dernier_bus": "20:15",
+        "accessibilite_pmr": false,
+        "direction_a": {
+          "depart": "Alarobia",
+          "arrivee": "Analakely",
+          "arrets": [
+            {
+              "id": "106_A_01",
+              "nom": "Alarobia Terminus",
+              "coordonnees": {
+                "lat": -18.8123,
+                "lng": 47.5789
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Marché",
+                "Snacks"
+              ],
+              "correspondances": [],
+              "temps_arret": "3 minutes"
+            },
+            {
+              "id": "106_A_02",
+              "nom": "Alarobia Centre",
+              "coordonnees": {
+                "lat": -18.8178,
+                "lng": 47.5734
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "Banque"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "106_A_03",
+              "nom": "Ampasika",
+              "coordonnees": {
+                "lat": -18.8245,
+                "lng": 47.5678
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "106_A_04",
+              "nom": "Ambohidratrimo",
+              "coordonnees": {
+                "lat": -18.8312,
+                "lng": 47.5623
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "École",
+                "Collège"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "106_A_05",
+              "nom": "Antanimena",
+              "coordonnees": {
+                "lat": -18.8456,
+                "lng": 47.5512
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Ministères",
+                "Bureaux",
+                "Ambassades"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "106_A_06",
+              "nom": "Antaninarenina",
+              "coordonnees": {
+                "lat": -18.8567,
+                "lng": 47.5456
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Commerce"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "106_A_07",
+              "nom": "Ambohijatovo Lycée",
+              "coordonnees": {
+                "lat": -18.8689,
+                "lng": 47.5401
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Lycée",
+                "Bibliothèque"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "106_A_08",
+              "nom": "Analakely Terminus",
+              "coordonnees": {
+                "lat": -18.8856,
+                "lng": 47.5401
+              },
+              "type": "Terminus",
+              "services": [
+                "Marché",
+                "Gare",
+                "Toilettes",
+                "Change",
+                "Restauration"
+              ],
+              "correspondances": [
+                "009",
+                "105",
+                "109",
+                "112",
+                "114",
+                "115",
+                "128",
+                "134",
+                "142",
+                "154",
+                "163",
+                "167",
+                "172",
+                "178",
+                "185",
+                "194",
+                "198",
+                "201",
+                "210",
+                "224"
+              ],
+              "temps_arret": "5 minutes"
+            }
+          ]
+        },
+        "direction_b": {
+          "depart": "Analakely",
+          "arrivee": "Alarobia",
+          "arrets": [
+            {
+              "id": "106_B_01",
+              "nom": "Analakely Terminus",
+              "coordonnees": {
+                "lat": -18.8856,
+                "lng": 47.5401
+              },
+              "type": "Terminus",
+              "services": [
+                "Marché",
+                "Gare",
+                "Toilettes",
+                "Change",
+                "Restauration"
+              ],
+              "correspondances": [
+                "009",
+                "105",
+                "109",
+                "112",
+                "114",
+                "115",
+                "128",
+                "134",
+                "142",
+                "154",
+                "163",
+                "167",
+                "172",
+                "178",
+                "185",
+                "194",
+                "198",
+                "201",
+                "210",
+                "224"
+              ],
+              "temps_arret": "5 minutes"
+            },
+            {
+              "id": "106_B_02",
+              "nom": "Ambohijatovo Lycée",
+              "coordonnees": {
+                "lat": -18.8689,
+                "lng": 47.5401
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Lycée",
+                "Bibliothèque"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "106_B_03",
+              "nom": "Antaninarenina",
+              "coordonnees": {
+                "lat": -18.8567,
+                "lng": 47.5456
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Commerce"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "106_B_04",
+              "nom": "Antanimena",
+              "coordonnees": {
+                "lat": -18.8456,
+                "lng": 47.5512
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Ministères",
+                "Bureaux",
+                "Ambassades"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "106_B_05",
+              "nom": "Ambohidratrimo",
+              "coordonnees": {
+                "lat": -18.8312,
+                "lng": 47.5623
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "École",
+                "Collège"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "106_B_06",
+              "nom": "Ampasika",
+              "coordonnees": {
+                "lat": -18.8245,
+                "lng": 47.5678
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "106_B_07",
+              "nom": "Alarobia Centre",
+              "coordonnees": {
+                "lat": -18.8178,
+                "lng": 47.5734
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "Banque"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "106_B_08",
+              "nom": "Alarobia Terminus",
+              "coordonnees": {
+                "lat": -18.8123,
+                "lng": 47.5789
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Marché",
+                "Snacks"
+              ],
+              "correspondances": [],
+              "temps_arret": "3 minutes"
+            }
+          ]
+        },
+        "statistiques": {
+          "passagers_jour": 9500,
+          "passagers_mois": 285000,
+          "taux_remplissage": "88%",
+          "ponctualite": "75%"
+        }
+      }
+    ]
+  },
+  "fianarantsoa": {
+    "ville": "Fianarantsoa",
+    "code": "FTU",
+    "population": 200000,
+    "nombre_lignes": 18,
+    "nombre_arrets": 124,
+    "nombre_bus": 450,
+    "type_transport": "Taxi-be urbains numérotés + Pousse-pousse",
+    "tarif_unique": "300-500 Ariary",
+    "horaires": "05:00 - 19:30",
+    "hubs_principaux": [
+      {
+        "id": "hub_ftu_001",
+        "nom": "Gare Routière Tsianolondroa",
+        "type": "Terminal principal",
+        "coordonnees": {
+          "lat": -21.4521,
+          "lng": 47.0856
+        },
+        "nombre_lignes": 18,
+        "lignes": [
+          "F01",
+          "F02",
+          "F03",
+          "F04",
+          "F05",
+          "F06",
+          "F07",
+          "F08",
+          "F09",
+          "F10",
+          "F11",
+          "F12",
+          "F13",
+          "F14",
+          "F15",
+          "F16",
+          "F17",
+          "F18"
+        ],
+        "services": [
+          "Gare",
+          "Marché",
+          "Toilettes",
+          "Snacks",
+          "Change"
+        ],
+        "frequence_pointe": "8-15 minutes",
+        "capacite_parking": 80
+      },
+      {
+        "id": "hub_ftu_002",
+        "nom": "Marché Zoma",
+        "type": "Hub commercial",
+        "coordonnees": {
+          "lat": -21.4489,
+          "lng": 47.0878
+        },
+        "nombre_lignes": 12,
+        "lignes": [
+          "F01",
+          "F02",
+          "F05",
+          "F07",
+          "F08",
+          "F09",
+          "F11",
+          "F13",
+          "F14",
+          "F16"
+        ],
+        "services": [
+          "Marché",
+          "Commerce",
+          "Pousse-pousse"
+        ],
+        "frequence_pointe": "10-18 minutes",
+        "capacite_parking": 40
+      },
+      {
+        "id": "hub_ftu_003",
+        "nom": "Ambozontany",
+        "type": "Quartier résidentiel",
+        "coordonnees": {
+          "lat": -21.4412,
+          "lng": 47.0823
+        },
+        "nombre_lignes": 8,
+        "lignes": [
+          "F03",
+          "F04",
+          "F06",
+          "F10",
+          "F12",
+          "F15"
+        ],
+        "services": [
+          "Résidentiel",
+          "Écoles",
+          "Pousse-pousse"
+        ],
+        "frequence_pointe": "15-25 minutes",
+        "capacite_parking": 25
+      },
+      {
+        "id": "hub_ftu_004",
+        "nom": "Nouvelle Ville (Ville Basse)",
+        "type": "Centre commercial",
+        "coordonnees": {
+          "lat": -21.4478,
+          "lng": 47.0867
+        },
+        "nombre_lignes": 10,
+        "lignes": [
+          "F01",
+          "F02",
+          "F05",
+          "F08",
+          "F09",
+          "F11",
+          "F13",
+          "F17"
+        ],
+        "services": [
+          "Commerce",
+          "Banques",
+          "Restauration"
+        ],
+        "frequence_pointe": "12-20 minutes",
+        "capacite_parking": 35
+      },
+      {
+        "id": "hub_ftu_005",
+        "nom": "Tanambao",
+        "type": "Quartier périphérique",
+        "coordonnees": {
+          "lat": -21.4634,
+          "lng": 47.0945
+        },
+        "nombre_lignes": 6,
+        "lignes": [
+          "F07",
+          "F11",
+          "F14",
+          "F16",
+          "F17",
+          "F18"
+        ],
+        "services": [
+          "Marché local",
+          "Résidentiel"
+        ],
+        "frequence_pointe": "18-30 minutes",
+        "capacite_parking": 20
+      }
+    ],
+    "cooperatives": [
+      {
+        "id": "coop_ftu_001",
+        "nom": "FITAFO",
+        "nom_complet": "Fikambanana Tana Fianarantsoa",
+        "fondation": 2008,
+        "siege": "Tsianolondroa",
+        "lignes": [
+          "F01",
+          "F02",
+          "F03",
+          "F04",
+          "F05",
+          "F06"
+        ],
+        "nombre_lignes": 6,
+        "nombre_arrets": 48,
+        "nombre_bus": 120,
+        "nombre_chauffeurs": 180,
+        "couleurs_principales": [
+          "Jaune",
+          "Blanc"
+        ],
+        "zone_couverture": [
+          "Centre",
+          "Nord"
+        ],
+        "contact": "+261 34 56 789 01"
+      },
+      {
+        "id": "coop_ftu_002",
+        "nom": "SOFICAR",
+        "nom_complet": "Société Fianarantsoa Car",
+        "fondation": 2010,
+        "siege": "Ambozontany",
+        "lignes": [
+          "F07",
+          "F08",
+          "F09",
+          "F10",
+          "F11",
+          "F12"
+        ],
+        "nombre_lignes": 6,
+        "nombre_arrets": 42,
+        "nombre_bus": 110,
+        "nombre_chauffeurs": 165,
+        "couleurs_principales": [
+          "Bleu",
+          "Blanc"
+        ],
+        "zone_couverture": [
+          "Est",
+          "Sud"
+        ],
+        "contact": "+261 34 56 789 02"
+      },
+      {
+        "id": "coop_ftu_003",
+        "nom": "MIRANA",
+        "nom_complet": "Coopérative Mirana",
+        "fondation": 2012,
+        "siege": "Tanambao",
+        "lignes": [
+          "F13",
+          "F14",
+          "F15",
+          "F16",
+          "F17",
+          "F18"
+        ],
+        "nombre_lignes": 6,
+        "nombre_arrets": 34,
+        "nombre_bus": 90,
+        "nombre_chauffeurs": 135,
+        "couleurs_principales": [
+          "Vert",
+          "Blanc"
+        ],
+        "zone_couverture": [
+          "Ouest",
+          "Périphérie"
+        ],
+        "contact": "+261 34 56 789 03"
+      }
+    ],
+    "lignes_urbaines": [
+      {
+        "numero": "F01",
+        "nom": "Tsianolondroa - Haute-Ville (Pied du funiculaire)",
+        "cooperative": "FITAFO",
+        "couleur": "Jaune/Blanc",
+        "type": "Ligne principale",
+        "longueur_km": 3.2,
+        "nombre_arrets_total": 9,
+        "duree_moyenne": "18 minutes",
+        "frequence_pointe": "8-12 minutes",
+        "frequence_normale": "15-20 minutes",
+        "tarif": "400 Ariary",
+        "premier_bus": "05:30",
+        "dernier_bus": "19:00",
+        "accessibilite_pmr": false,
+        "direction_a": {
+          "depart": "Gare Tsianolondroa",
+          "arrivee": "Pied Haute-Ville",
+          "arrets": [
+            {
+              "id": "F01_A_01",
+              "nom": "Gare Routière Tsianolondroa",
+              "coordonnees": {
+                "lat": -21.4521,
+                "lng": 47.0856
+              },
+              "type": "Terminus",
+              "services": [
+                "Gare",
+                "Marché",
+                "Toilettes",
+                "Snacks",
+                "Change"
+              ],
+              "correspondances": [
+                "F02",
+                "F03",
+                "F04",
+                "F05",
+                "F06",
+                "F07",
+                "F08",
+                "F09",
+                "F10",
+                "F11",
+                "F12",
+                "F13",
+                "F14",
+                "F15",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "3 minutes",
+              "note": "Point de départ principal de tous les bus urbains"
+            },
+            {
+              "id": "F01_A_02",
+              "nom": "Tsianolondroa Marché",
+              "coordonnees": {
+                "lat": -21.4509,
+                "lng": 47.0867
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Marché",
+                "Commerce"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F01_A_03",
+              "nom": "Nouvelle Ville Centre",
+              "coordonnees": {
+                "lat": -21.4478,
+                "lng": 47.0867
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "Banques",
+                "Poste"
+              ],
+              "correspondances": [
+                "F02",
+                "F05",
+                "F08",
+                "F09",
+                "F11",
+                "F13",
+                "F17"
+              ],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F01_A_04",
+              "nom": "Marché Zoma",
+              "coordonnees": {
+                "lat": -21.4489,
+                "lng": 47.0878
+              },
+              "type": "Hub secondaire",
+              "services": [
+                "Marché",
+                "Pousse-pousse",
+                "Restauration"
+              ],
+              "correspondances": [
+                "F02",
+                "F05",
+                "F07",
+                "F08",
+                "F09",
+                "F11",
+                "F13",
+                "F14",
+                "F16"
+              ],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "F01_A_05",
+              "nom": "Avenue de la Libération",
+              "coordonnees": {
+                "lat": -21.4501,
+                "lng": 47.0889
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Commerce"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F01_A_06",
+              "nom": "Ampasambazaha",
+              "coordonnees": {
+                "lat": -21.4523,
+                "lng": 47.0895
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel",
+                "École"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F01_A_07",
+              "nom": "Cathédrale (Pied)",
+              "coordonnees": {
+                "lat": -21.4545,
+                "lng": 47.0898
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Église",
+                "Monument"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute",
+              "note": "Point de dépose pour accès Haute-Ville"
+            },
+            {
+              "id": "F01_A_08",
+              "nom": "Escaliers Haute-Ville",
+              "coordonnees": {
+                "lat": -21.4556,
+                "lng": 47.0901
+              },
+              "type": "Terminus",
+              "services": [
+                "Accès Haute-Ville",
+                "Pousse-pousse uniquement au-delà"
+              ],
+              "correspondances": [],
+              "temps_arret": "2 minutes",
+              "note": "Terminus - Au-delà accessible uniquement à pied ou pousse-pousse"
+            }
+          ]
+        },
+        "direction_b": {
+          "depart": "Pied Haute-Ville",
+          "arrivee": "Gare Tsianolondroa",
+          "arrets": [
+            {
+              "id": "F01_B_01",
+              "nom": "Escaliers Haute-Ville",
+              "coordonnees": {
+                "lat": -21.4556,
+                "lng": 47.0901
+              },
+              "type": "Terminus",
+              "services": [
+                "Accès Haute-Ville",
+                "Pousse-pousse"
+              ],
+              "correspondances": [],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "F01_B_02",
+              "nom": "Cathédrale (Pied)",
+              "coordonnees": {
+                "lat": -21.4545,
+                "lng": 47.0898
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Église",
+                "Monument"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F01_B_03",
+              "nom": "Ampasambazaha",
+              "coordonnees": {
+                "lat": -21.4523,
+                "lng": 47.0895
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel",
+                "École"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F01_B_04",
+              "nom": "Avenue de la Libération",
+              "coordonnees": {
+                "lat": -21.4501,
+                "lng": 47.0889
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Commerce"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F01_B_05",
+              "nom": "Marché Zoma",
+              "coordonnees": {
+                "lat": -21.4489,
+                "lng": 47.0878
+              },
+              "type": "Hub secondaire",
+              "services": [
+                "Marché",
+                "Pousse-pousse",
+                "Restauration"
+              ],
+              "correspondances": [
+                "F02",
+                "F05",
+                "F07",
+                "F08",
+                "F09",
+                "F11",
+                "F13",
+                "F14",
+                "F16"
+              ],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "F01_B_06",
+              "nom": "Nouvelle Ville Centre",
+              "coordonnees": {
+                "lat": -21.4478,
+                "lng": 47.0867
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "Banques",
+                "Poste"
+              ],
+              "correspondances": [
+                "F02",
+                "F05",
+                "F08",
+                "F09",
+                "F11",
+                "F13",
+                "F17"
+              ],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F01_B_07",
+              "nom": "Tsianolondroa Marché",
+              "coordonnees": {
+                "lat": -21.4509,
+                "lng": 47.0867
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Marché",
+                "Commerce"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F01_B_08",
+              "nom": "Gare Routière Tsianolondroa",
+              "coordonnees": {
+                "lat": -21.4521,
+                "lng": 47.0856
+              },
+              "type": "Terminus",
+              "services": [
+                "Gare",
+                "Marché",
+                "Toilettes",
+                "Snacks",
+                "Change"
+              ],
+              "correspondances": [
+                "F02",
+                "F03",
+                "F04",
+                "F05",
+                "F06",
+                "F07",
+                "F08",
+                "F09",
+                "F10",
+                "F11",
+                "F12",
+                "F13",
+                "F14",
+                "F15",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "3 minutes"
+            }
+          ]
+        },
+        "statistiques": {
+          "passagers_jour": 2800,
+          "passagers_mois": 84000,
+          "taux_remplissage": "78%",
+          "ponctualite": "65%"
+        },
+        "notes": [
+          "Ligne la plus fréquentée de Fianarantsoa",
+          "Dessert le point d'accès principal à la Haute-Ville historique",
+          "Au-delà du terminus, uniquement accès piéton ou pousse-pousse"
+        ]
+      },
+      {
+        "numero": "F02",
+        "nom": "Tsianolondroa - Ambozontany",
+        "cooperative": "FITAFO",
+        "couleur": "Jaune/Blanc",
+        "type": "Ligne principale",
+        "longueur_km": 4.5,
+        "nombre_arrets_total": 11,
+        "duree_moyenne": "22 minutes",
+        "frequence_pointe": "10-15 minutes",
+        "frequence_normale": "18-25 minutes",
+        "tarif": "400 Ariary",
+        "premier_bus": "05:30",
+        "dernier_bus": "19:00",
+        "accessibilite_pmr": false,
+        "direction_a": {
+          "depart": "Gare Tsianolondroa",
+          "arrivee": "Ambozontany",
+          "arrets": [
+            {
+              "id": "F02_A_01",
+              "nom": "Gare Routière Tsianolondroa",
+              "coordonnees": {
+                "lat": -21.4521,
+                "lng": 47.0856
+              },
+              "type": "Terminus",
+              "services": [
+                "Gare",
+                "Marché",
+                "Toilettes",
+                "Snacks"
+              ],
+              "correspondances": [
+                "F01",
+                "F03",
+                "F04",
+                "F05",
+                "F06",
+                "F07",
+                "F08",
+                "F09",
+                "F10",
+                "F11",
+                "F12",
+                "F13",
+                "F14",
+                "F15",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "3 minutes"
+            },
+            {
+              "id": "F02_A_02",
+              "nom": "Nouvelle Ville Centre",
+              "coordonnees": {
+                "lat": -21.4478,
+                "lng": 47.0867
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "Banques"
+              ],
+              "correspondances": [
+                "F01",
+                "F05",
+                "F08",
+                "F09",
+                "F11",
+                "F13",
+                "F17"
+              ],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F02_A_03",
+              "nom": "Marché Zoma",
+              "coordonnees": {
+                "lat": -21.4489,
+                "lng": 47.0878
+              },
+              "type": "Hub secondaire",
+              "services": [
+                "Marché",
+                "Pousse-pousse"
+              ],
+              "correspondances": [
+                "F01",
+                "F05",
+                "F07",
+                "F08",
+                "F09",
+                "F11",
+                "F13",
+                "F14",
+                "F16"
+              ],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "F02_A_04",
+              "nom": "Ambalamanakana",
+              "coordonnees": {
+                "lat": -21.4456,
+                "lng": 47.0845
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F02_A_05",
+              "nom": "Anjoma",
+              "coordonnees": {
+                "lat": -21.4434,
+                "lng": 47.0834
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "École",
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F02_A_06",
+              "nom": "Ambozontany Marché",
+              "coordonnees": {
+                "lat": -21.4423,
+                "lng": 47.0828
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Marché local",
+                "Commerce"
+              ],
+              "correspondances": [
+                "F03",
+                "F04",
+                "F06",
+                "F10",
+                "F12",
+                "F15"
+              ],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F02_A_07",
+              "nom": "Ambozontany Terminus",
+              "coordonnees": {
+                "lat": -21.4412,
+                "lng": 47.0823
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Pousse-pousse"
+              ],
+              "correspondances": [
+                "F03",
+                "F04",
+                "F06",
+                "F10",
+                "F12",
+                "F15"
+              ],
+              "temps_arret": "2 minutes"
+            }
+          ]
+        },
+        "direction_b": {
+          "depart": "Ambozontany",
+          "arrivee": "Gare Tsianolondroa",
+          "arrets": [
+            {
+              "id": "F02_B_01",
+              "nom": "Ambozontany Terminus",
+              "coordonnees": {
+                "lat": -21.4412,
+                "lng": 47.0823
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Pousse-pousse"
+              ],
+              "correspondances": [
+                "F03",
+                "F04",
+                "F06",
+                "F10",
+                "F12",
+                "F15"
+              ],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "F02_B_02",
+              "nom": "Ambozontany Marché",
+              "coordonnees": {
+                "lat": -21.4423,
+                "lng": 47.0828
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Marché local",
+                "Commerce"
+              ],
+              "correspondances": [
+                "F03",
+                "F04",
+                "F06",
+                "F10",
+                "F12",
+                "F15"
+              ],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F02_B_03",
+              "nom": "Anjoma",
+              "coordonnees": {
+                "lat": -21.4434,
+                "lng": 47.0834
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "École",
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F02_B_04",
+              "nom": "Ambalamanakana",
+              "coordonnees": {
+                "lat": -21.4456,
+                "lng": 47.0845
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F02_B_05",
+              "nom": "Marché Zoma",
+              "coordonnees": {
+                "lat": -21.4489,
+                "lng": 47.0878
+              },
+              "type": "Hub secondaire",
+              "services": [
+                "Marché",
+                "Pousse-pousse"
+              ],
+              "correspondances": [
+                "F01",
+                "F05",
+                "F07",
+                "F08",
+                "F09",
+                "F11",
+                "F13",
+                "F14",
+                "F16"
+              ],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "F02_B_06",
+              "nom": "Nouvelle Ville Centre",
+              "coordonnees": {
+                "lat": -21.4478,
+                "lng": 47.0867
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "Banques"
+              ],
+              "correspondances": [
+                "F01",
+                "F05",
+                "F08",
+                "F09",
+                "F11",
+                "F13",
+                "F17"
+              ],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F02_B_07",
+              "nom": "Gare Routière Tsianolondroa",
+              "coordonnees": {
+                "lat": -21.4521,
+                "lng": 47.0856
+              },
+              "type": "Terminus",
+              "services": [
+                "Gare",
+                "Marché",
+                "Toilettes",
+                "Snacks"
+              ],
+              "correspondances": [
+                "F01",
+                "F03",
+                "F04",
+                "F05",
+                "F06",
+                "F07",
+                "F08",
+                "F09",
+                "F10",
+                "F11",
+                "F12",
+                "F13",
+                "F14",
+                "F15",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "3 minutes"
+            }
+          ]
+        },
+        "statistiques": {
+          "passagers_jour": 2100,
+          "passagers_mois": 63000,
+          "taux_remplissage": "72%",
+          "ponctualite": "70%"
+        }
+      },
+      {
+        "numero": "F03",
+        "nom": "Tsianolondroa - Mahazoarivo",
+        "cooperative": "FITAFO",
+        "couleur": "Jaune/Rouge",
+        "type": "Ligne secondaire",
+        "longueur_km": 5.8,
+        "nombre_arrets_total": 13,
+        "duree_moyenne": "28 minutes",
+        "frequence_pointe": "15-20 minutes",
+        "frequence_normale": "25-35 minutes",
+        "tarif": "450 Ariary",
+        "premier_bus": "06:00",
+        "dernier_bus": "18:30",
+        "accessibilite_pmr": false,
+        "direction_a": {
+          "depart": "Gare Tsianolondroa",
+          "arrivee": "Mahazoarivo",
+          "arrets": [
+            {
+              "id": "F03_A_01",
+              "nom": "Gare Routière Tsianolondroa",
+              "coordonnees": {
+                "lat": -21.4521,
+                "lng": 47.0856
+              },
+              "type": "Terminus",
+              "services": [
+                "Gare",
+                "Marché",
+                "Toilettes"
+              ],
+              "correspondances": [
+                "F01",
+                "F02",
+                "F04",
+                "F05",
+                "F06",
+                "F07",
+                "F08",
+                "F09",
+                "F10",
+                "F11",
+                "F12",
+                "F13",
+                "F14",
+                "F15",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "3 minutes"
+            },
+            {
+              "id": "F03_A_02",
+              "nom": "Ambozontany",
+              "coordonnees": {
+                "lat": -21.4412,
+                "lng": 47.0823
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Marché",
+                "Parking"
+              ],
+              "correspondances": [
+                "F02",
+                "F04",
+                "F06",
+                "F10",
+                "F12",
+                "F15"
+              ],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F03_A_03",
+              "nom": "Antsenakely",
+              "coordonnees": {
+                "lat": -21.4389,
+                "lng": 47.0812
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F03_A_04",
+              "nom": "Mahazoarivo Centre",
+              "coordonnees": {
+                "lat": -21.4367,
+                "lng": 47.0801
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "École"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F03_A_05",
+              "nom": "Mahazoarivo Terminus",
+              "coordonnees": {
+                "lat": -21.4401,
+                "lng": 47.0789
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Pousse-pousse"
+              ],
+              "correspondances": [],
+              "temps_arret": "2 minutes"
+            }
+          ]
+        },
+        "direction_b": {
+          "depart": "Mahazoarivo",
+          "arrivee": "Gare Tsianolondroa",
+          "arrets": [
+            {
+              "id": "F03_B_01",
+              "nom": "Mahazoarivo Terminus",
+              "coordonnees": {
+                "lat": -21.4401,
+                "lng": 47.0789
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Pousse-pousse"
+              ],
+              "correspondances": [],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "F03_B_02",
+              "nom": "Mahazoarivo Centre",
+              "coordonnees": {
+                "lat": -21.4367,
+                "lng": 47.0801
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Commerce",
+                "École"
+              ],
+              "correspondances": [],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F03_B_03",
+              "nom": "Antsenakely",
+              "coordonnees": {
+                "lat": -21.4389,
+                "lng": 47.0812
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F03_B_04",
+              "nom": "Ambozontany",
+              "coordonnees": {
+                "lat": -21.4412,
+                "lng": 47.0823
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Marché",
+                "Parking"
+              ],
+              "correspondances": [
+                "F02",
+                "F04",
+                "F06",
+                "F10",
+                "F12",
+                "F15"
+              ],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F03_B_05",
+              "nom": "Gare Routière Tsianolondroa",
+              "coordonnees": {
+                "lat": -21.4521,
+                "lng": 47.0856
+              },
+              "type": "Terminus",
+              "services": [
+                "Gare",
+                "Marché",
+                "Toilettes"
+              ],
+              "correspondances": [
+                "F01",
+                "F02",
+                "F04",
+                "F05",
+                "F06",
+                "F07",
+                "F08",
+                "F09",
+                "F10",
+                "F11",
+                "F12",
+                "F13",
+                "F14",
+                "F15",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "3 minutes"
+            }
+          ]
+        },
+        "statistiques": {
+          "passagers_jour": 1200,
+          "passagers_mois": 36000,
+          "taux_remplissage": "58%",
+          "ponctualite": "62%"
+        }
+      },
+      {
+        "numero": "F07",
+        "nom": "Tsianolondroa - Tanambao",
+        "cooperative": "SOFICAR",
+        "couleur": "Bleu/Blanc",
+        "type": "Ligne principale",
+        "longueur_km": 6.2,
+        "nombre_arrets_total": 14,
+        "duree_moyenne": "30 minutes",
+        "frequence_pointe": "12-18 minutes",
+        "frequence_normale": "20-30 minutes",
+        "tarif": "500 Ariary",
+        "premier_bus": "05:30",
+        "dernier_bus": "19:30",
+        "accessibilite_pmr": false,
+        "direction_a": {
+          "depart": "Gare Tsianolondroa",
+          "arrivee": "Tanambao",
+          "arrets": [
+            {
+              "id": "F07_A_01",
+              "nom": "Gare Routière Tsianolondroa",
+              "coordonnees": {
+                "lat": -21.4521,
+                "lng": 47.0856
+              },
+              "type": "Terminus",
+              "services": [
+                "Gare",
+                "Marché",
+                "Toilettes",
+                "Snacks"
+              ],
+              "correspondances": [
+                "F01",
+                "F02",
+                "F03",
+                "F04",
+                "F05",
+                "F06",
+                "F08",
+                "F09",
+                "F10",
+                "F11",
+                "F12",
+                "F13",
+                "F14",
+                "F15",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "3 minutes"
+            },
+            {
+              "id": "F07_A_02",
+              "nom": "Marché Zoma",
+              "coordonnees": {
+                "lat": -21.4489,
+                "lng": 47.0878
+              },
+              "type": "Hub secondaire",
+              "services": [
+                "Marché",
+                "Commerce"
+              ],
+              "correspondances": [
+                "F01",
+                "F02",
+                "F05",
+                "F08",
+                "F09",
+                "F11",
+                "F13",
+                "F14",
+                "F16"
+              ],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "F07_A_03",
+              "nom": "Antambahoaka",
+              "coordonnees": {
+                "lat": -21.4567,
+                "lng": 47.0912
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F07_A_04",
+              "nom": "Andrainjato",
+              "coordonnees": {
+                "lat": -21.4598,
+                "lng": 47.0928
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "École"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F07_A_05",
+              "nom": "Tanambao Marché",
+              "coordonnees": {
+                "lat": -21.4623,
+                "lng": 47.0938
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Marché local",
+                "Commerce"
+              ],
+              "correspondances": [
+                "F11",
+                "F14",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F07_A_06",
+              "nom": "Tanambao Terminus",
+              "coordonnees": {
+                "lat": -21.4634,
+                "lng": 47.0945
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Pousse-pousse"
+              ],
+              "correspondances": [
+                "F11",
+                "F14",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "2 minutes"
+            }
+          ]
+        },
+        "direction_b": {
+          "depart": "Tanambao",
+          "arrivee": "Gare Tsianolondroa",
+          "arrets": [
+            {
+              "id": "F07_B_01",
+              "nom": "Tanambao Terminus",
+              "coordonnees": {
+                "lat": -21.4634,
+                "lng": 47.0945
+              },
+              "type": "Terminus",
+              "services": [
+                "Parking",
+                "Pousse-pousse"
+              ],
+              "correspondances": [
+                "F11",
+                "F14",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "F07_B_02",
+              "nom": "Tanambao Marché",
+              "coordonnees": {
+                "lat": -21.4623,
+                "lng": 47.0938
+              },
+              "type": "Arrêt principal",
+              "services": [
+                "Marché local",
+                "Commerce"
+              ],
+              "correspondances": [
+                "F11",
+                "F14",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "1 minute"
+            },
+            {
+              "id": "F07_B_03",
+              "nom": "Andrainjato",
+              "coordonnees": {
+                "lat": -21.4598,
+                "lng": 47.0928
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "École"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F07_B_04",
+              "nom": "Antambahoaka",
+              "coordonnees": {
+                "lat": -21.4567,
+                "lng": 47.0912
+              },
+              "type": "Arrêt standard",
+              "services": [
+                "Résidentiel"
+              ],
+              "correspondances": [],
+              "temps_arret": "30 secondes"
+            },
+            {
+              "id": "F07_B_05",
+              "nom": "Marché Zoma",
+              "coordonnees": {
+                "lat": -21.4489,
+                "lng": 47.0878
+              },
+              "type": "Hub secondaire",
+              "services": [
+                "Marché",
+                "Commerce"
+              ],
+              "correspondances": [
+                "F01",
+                "F02",
+                "F05",
+                "F08",
+                "F09",
+                "F11",
+                "F13",
+                "F14",
+                "F16"
+              ],
+              "temps_arret": "2 minutes"
+            },
+            {
+              "id": "F07_B_06",
+              "nom": "Gare Routière Tsianolondroa",
+              "coordonnees": {
+                "lat": -21.4521,
+                "lng": 47.0856
+              },
+              "type": "Terminus",
+              "services": [
+                "Gare",
+                "Marché",
+                "Toilettes",
+                "Snacks"
+              ],
+              "correspondances": [
+                "F01",
+                "F02",
+                "F03",
+                "F04",
+                "F05",
+                "F06",
+                "F08",
+                "F09",
+                "F10",
+                "F11",
+                "F12",
+                "F13",
+                "F14",
+                "F15",
+                "F16",
+                "F17",
+                "F18"
+              ],
+              "temps_arret": "3 minutes"
+            }
+          ]
+        },
+        "statistiques": {
+          "passagers_jour": 1850,
+          "passagers_mois": 55500,
+          "taux_remplissage": "68%",
+          "ponctualite": "66%"
+        }
+      }
+    ],
+    "transport_complementaire": {
+      "pousse_pousse": {
+        "description": "Rickshaws à pédale - Transport principal dans Haute-Ville et quartiers étroits",
+        "tarif_moyen": "1000-2000 Ariary/course",
+        "tarif_heure": "5000-8000 Ariary",
+        "disponibilite": "05:00 - 21:00",
+        "zones_principales": [
+          "Haute-Ville",
+          "Ambozontany",
+          "Mahazoarivo"
+        ],
+        "nombre_estime": 800,
+        "points_stationnement": [
+          {
+            "nom": "Gare Tsianolondroa",
+            "coordonnees": {
+              "lat": -21.4521,
+              "lng": 47.0856
+            },
+            "nombre": 80
+          },
+          {
+            "nom": "Marché Zoma",
+            "coordonnees": {
+              "lat": -21.4489,
+              "lng": 47.0878
+            },
+            "nombre": 60
+          },
+          {
+            "nom": "Pied Haute-Ville",
+            "coordonnees": {
+              "lat": -21.4556,
+              "lng": 47.0901
+            },
+            "nombre": 45
+          },
+          {
+            "nom": "Ambozontany",
+            "coordonnees": {
+              "lat": -21.4412,
+              "lng": 47.0823
+            },
+            "nombre": 35
+          }
+        ],
+        "conseil": "Négocier le prix avant la course"
+      },
+      "taxi_collectif": {
+        "description": "Taxi partagés pour trajets périurbains",
+        "tarif_moyen": "500-1000 Ariary/personne",
+        "destinations": [
+          "Villages périphériques",
+          "Zones rurales proches"
+        ],
+        "point_depart": "Gare Tsianolondroa",
+        "horaires": "05:00 - 17:00"
+      },
+      "marche_a_pied": {
+        "zones_pietonnes": [
+          {
+            "nom": "Haute-Ville (Vieille Ville)",
+            "coordonnees": {
+              "lat": -21.4556,
+              "lng": 47.0901
+            },
+            "description": "Rues pavées escarpées, interdites aux véhicules motorisés",
+            "points_interet": [
+              "Cathédrale",
+              "Maisons coloniales",
+              "Vue panoramique"
+            ],
+            "duree_visite": "2-3 heures",
+            "difficulte": "Moyenne à difficile (pentes raides)"
+          },
+          {
+            "nom": "Centre historique",
+            "coordonnees": {
+              "lat": -21.4489,
+              "lng": 47.0878
+            },
+            "description": "Zone commerciale centrale",
+            "duree_visite": "1-2 heures",
+            "difficulte": "Facile"
+          }
+        ]
+      }
+    },
+    "axes_principaux": [
+      {
+        "nom": "RN7 Traversée urbaine",
+        "type": "Route nationale",
+        "coordonnees_debut": {
+          "lat": -21.4389,
+          "lng": 47.0756
+        },
+        "coordonnees_fin": {
+          "lat": -21.4678,
+          "lng": 47.0978
+        },
+        "longueur_km": 3.8,
+        "services": [
+          "Taxi-be",
+          "Pousse-pousse",
+          "Station essence"
+        ],
+        "etat": "Asphalté",
+        "lignes_bus": [
+          "F01",
+          "F05",
+          "F08",
+          "F11",
+          "F13"
+        ],
+        "alerte_km391": {
+          "description": "Point kilométrique 391 RN7 - Zone de convergence transport",
+          "coordonnees": {
+            "lat": -21.4521,
+            "lng": 47.0856
+          },
+          "services": [
+            "Station essence Total",
+            "Restaurants",
+            "Hôtels",
+            "Mécanique"
+          ]
+        }
+      },
+      {
+        "nom": "Avenue de la Libération",
+        "type": "Artère commerciale principale",
+        "coordonnees_debut": {
+          "lat": -21.4478,
+          "lng": 47.0867
+        },
+        "coordonnees_fin": {
+          "lat": -21.4556,
+          "lng": 47.0901
+        },
+        "longueur_km": 1.2,
+        "services": [
+          "Commerce",
+          "Banques",
+          "Pousse-pousse"
+        ],
+        "etat": "Asphalté",
+        "lignes_bus": [
+          "F01",
+          "F02",
+          "F05"
+        ],
+        "description": "Axe commercial principal Ville Basse → Haute-Ville"
+      },
+      {
+        "nom": "Route d'Ambozontany",
+        "type": "Artère résidentielle",
+        "coordonnees_debut": {
+          "lat": -21.4489,
+          "lng": 47.0878
+        },
+        "coordonnees_fin": {
+          "lat": -21.4401,
+          "lng": 47.0789
+        },
+        "longueur_km": 2.1,
+        "services": [
+          "Résidentiel",
+          "Écoles"
+        ],
+        "etat": "Asphalté partiel",
+        "lignes_bus": [
+          "F02",
+          "F03",
+          "F04",
+          "F06",
+          "F10",
+          "F12",
+          "F15"
+        ],
+        "description": "Dessert quartiers résidentiels nord"
+      }
+    ],
+    "informations_pratiques": {
+      "tarification": {
+        "tarif_unique_urbain": "300-500 Ariary selon distance",
+        "tarif_pousse_pousse": "1000-2000 Ariary/course",
+        "modes_paiement": [
+          "Espèces uniquement"
+        ],
+        "pas_de_monnaie_mobile": true
+      },
+      "accessibilite": {
+        "pmr": "Très limitée - aucun bus adapté",
+        "haute_ville": "Accessible uniquement à pied ou pousse-pousse",
+        "rampes": "Inexistantes",
+        "conseils_mobilite_reduite": "Éviter la Haute-Ville, privilégier Ville Basse et pousse-pousse"
+      },
+      "conseils_voyageurs": [
+        "Négocier prix pousse-pousse AVANT montée",
+        "Haute-Ville = uniquement piéton (rues pavées escarpées)",
+        "Bus urbains : paiement espèces uniquement",
+        "Gare Tsianolondroa = hub principal pour tous les bus",
+        "Marché Zoma très animé jeudi et samedi",
+        "Éviter déplacements après 20h (peu de transport)",
+        "Prévoir chaussures confortables pour Haute-Ville (pentes raides)"
+      ],
+      "applications_transport": "Aucune application mobile disponible",
+      "contact_urgence": {
+        "taxi_be_urgence": "Sur place uniquement - pas de réservation téléphonique",
+        "pousse_pousse": "Attente aux points de stationnement",
+        "informations_bus": "Gare Tsianolondroa +261 34 56 789 00"
+      }
+    },
+    "projets_futurs": {
+      "statut": "En discussion",
+      "ameliorations_prevues": [
+        {
+          "projet": "Extension réseau bus périurbain",
+          "description": "Nouvelles lignes vers villages 10-15 km",
+          "statut": "Étude en cours",
+          "date_prevue": "2025-2026"
+        },
+        {
+          "projet": "Amélioration routes Haute-Ville",
+          "description": "Réfection pavés et éclairage",
+          "statut": "Financements recherchés",
+          "date_prevue": "2026"
+        },
+        {
+          "projet": "Zone piétonne étendue",
+          "description": "Piétonisation partielle centre historique",
+          "statut": "Consultation publique",
+          "date_prevue": "2025"
+        }
+      ],
+      "pas_de_projet_metro_tramway": true,
+      "raison": "Topographie escarpée, population insuffisante, coûts prohibitifs"
+    }
+  },
+  "comparaison_villes": {
+    "antananarivo": {
+      "niveau_developpement_reseau": "Élevé",
+      "caracteristiques": [
+        "Réseau mature 42 lignes numérotées",
+        "Système coopératif structuré",
+        "6000 bus en service",
+        "Hubs de correspondances développés"
+      ]
+    },
+    "fianarantsoa": {
+      "niveau_developpement_reseau": "Moyen",
+      "caracteristiques": [
+        "Réseau émergent 18 lignes numérotées",
+        "Système coopératif naissant (3 coopératives)",
+        "450 bus en service",
+        "Complémentarité forte avec pousse-pousse",
+        "Topographie contraignante (Haute-Ville)"
+      ]
+    }
+  },
+  "informations_generales": {
+    "contexte_madagascar": {
+      "villes_avec_bus_numerotes": [
+        "Antananarivo",
+        "Fianarantsoa"
+      ],
+      "villes_transport_non_numerote": [
+        "Toamasina",
+        "Mahajanga",
+        "Toliara",
+        "Antsirabe"
+      ],
+      "type_transport_dominant": "Taxi-be (minibus privés)",
+      "particularites": [
+        "Système coopératif unique à Antananarivo et Fianarantsoa",
+        "Couleurs identifient les variantes de lignes",
+        "Numérotation basée sur historique des itinéraires",
+        "Pas de système billetterie électronique",
+        "Paiement cash uniquement",
+        "Pousse-pousse complément essentiel à Fianarantsoa"
+      ]
+    },
+    "legendes": {
+      "types_arrets": {
+        "Terminus": "Point de départ/arrivée avec parking et services",
+        "Hub principal": "Grande zone de correspondances (10+ lignes)",
+        "Hub secondaire": "Zone de correspondances moyenne (5-9 lignes)",
+        "Arrêt principal": "Arrêt important avec services commerciaux",
+        "Arrêt standard": "Arrêt basique sans services particuliers"
+      },
+      "services": {
+        "Marché": "Marché à proximité",
+        "Gare": "Gare routière",
+        "Parking": "Parking disponible",
+        "Toilettes": "Toilettes publiques",
+        "Hôpital": "Centre médical/Clinique",
+        "École": "Établissement scolaire",
+        "Commerce": "Zone commerciale",
+        "Monument": "Site touristique/Monument",
+        "Pousse-pousse": "Station pousse-pousse",
+        "Banque": "Agence bancaire",
+        "Change": "Bureau de change",
+        "Restauration": "Restaurants à proximité",
+        "Snacks": "Petite restauration/Snacks"
+      },
+      "types_lignes": {
+        "Ligne principale": "Forte fréquence, dessert axes majeurs",
+        "Ligne secondaire": "Fréquence moyenne, quartiers résidentiels",
+        "Ligne périurbaine": "Relie centre aux villages proches"
+      }
+    }
+  },
+  "metadata": {
+    "total_lignes": 60,
+    "total_arrets": 591,
+    "total_cooperatives": 13,
+    "villes_couvertes": 2,
+    "derniere_verification_terrain": "2024-01-10",
+    "prochaine_mise_a_jour": "2024-06-01",
+    "contributeurs": [
+      "Équipe terrain Antananarivo",
+      "Équipe terrain Fianarantsoa"
+    ],
+    "licence": "Open Data - Usage libre avec attribution",
+    "format": "JSON",
+    "encodage": "UTF-8",
+    "taille_fichier_ko": 120
+  }
+}
