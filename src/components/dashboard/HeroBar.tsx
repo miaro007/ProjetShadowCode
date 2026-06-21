@@ -4,13 +4,15 @@ import { COLORS } from "@/lib/dashboard-data";
 import { CongestionPoint, HotZone } from "@/types/dashboard";
 import { getGreeting } from "@/utils/dashboard";
 
-export default function HeroBar({ displayName, hour, congestionData, zones, onDestinationClick, onSignalClick }: {
+export default function HeroBar({ displayName, hour, congestionData, zones, onDestinationClick, onSignalClick, location, signalCount }: {
   displayName: string;
   hour: number;
   congestionData: CongestionPoint[];
   zones: HotZone[];
   onDestinationClick: () => void;
   onSignalClick: () => void;
+  location: string;
+  signalCount: number;
 }) {
   const greeting = getGreeting(hour);
   const current = congestionData[congestionData.length - 1];
@@ -21,20 +23,20 @@ export default function HeroBar({ displayName, hour, congestionData, zones, onDe
     <div className="hero">
       <div className="hero-info">
         <h1 className="title">
-          {greeting}, <span className="hl">{displayName}</span> 👋
+          Bonjour <span className="hl">{displayName}</span> 👋
         </h1>
         <div className="stats">
           <div className="stat">
-            <span className="dot warn" />
-            <b>{current?.vehicules.toLocaleString()}</b> véhicules bloqués
+            <span className="dot" style={{background: '#00E5A0'}} />
+            Vous êtes à <b>{location.split(",")[0]}</b>
           </div>
           <div className="stat">
             <span className="dot warn" />
-            <b>{criticalZones}</b> zones critiques
+            Trafic global : <b style={{color: '#FF3D00'}}>Saturé</b>
           </div>
           <div className="stat">
-            <span className="dot" />
-            <b>{timeLostToday} min</b> perdues aujourd&apos;hui
+            <span className="dot" style={{background: '#FFB800'}} />
+            <b>{signalCount}</b> signalements aujourd&apos;hui
           </div>
         </div>
       </div>
@@ -63,7 +65,7 @@ export default function HeroBar({ displayName, hour, congestionData, zones, onDe
           display: flex; align-items: center; justify-content: space-between;
           gap: 24px; flex-wrap: wrap;
         }
-        .title { font-size: 24px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.02em; }
+        .title { font-size: 26px; font-weight: 800; margin-bottom: 12px; letter-spacing: -0.02em; }
         .hl { color: ${COLORS.primary}; }
         .stats { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
         .stat {

@@ -150,7 +150,7 @@ function DashboardContent() {
 
   const handleDestConfirm = useCallback((destination: string, mode: string) => {
     setShowDestModal(false);
-    
+
     // Simuler un trajet pour forcer la Map à le tracer
     setSelectedTrajet({
       id: Date.now(),
@@ -168,8 +168,10 @@ function DashboardContent() {
     setToast({ message: `🚀 ARIA calcule votre itinéraire vers ${destination}...`, type: "info" });
     setTimeout(() => {
       const modeText = mode === 'voiture' ? 'en voiture' : mode === 'taxibe' ? 'en taxi-be' : 'à pied';
-      const message = `ARIA, je veux aller à ${destination} depuis ${location} ${modeText}. Donne-moi le meilleur itinéraire en évitant les ${zones.filter(z => z.level >= 80).length} zones critiques. Quel est le meilleur moment de départ ?`;
-      window.dispatchEvent(new CustomEvent("aria-open", { detail: { message } }));
+      const message = `Je veux aller à ${destination}. Donne-moi les prévisions de temps de trajet selon l'heure de départ.`;
+      const response = `D'après mes analyses de l'état actuel du trafic et de l'historique vers **${destination}** :\n\n- Si vous partez maintenant : **1h25**\n- Si vous partez à 6h40 : **25 minutes**\n- Si vous partez à 7h30 : **1h45**\n\n💡 Je vous recommande vivement d'anticiper et de partir à **6h40** pour esquiver le gros bouchon en formation.`;
+
+      window.dispatchEvent(new CustomEvent("aria-open", { detail: { message, response } }));
     }, 600);
   }, [location, zones]);
 
@@ -284,7 +286,7 @@ function DashboardContent() {
           50% { opacity: 0.5; transform: scale(1.4); }
         }
       `}</style>
-      
+
       <LeftDrawer />
 
       <Topbar
@@ -304,6 +306,8 @@ function DashboardContent() {
         zones={zones}
         onDestinationClick={() => setShowDestModal(true)}
         onSignalClick={handleSignalIncident}
+        location={location}
+        signalCount={signalCount}
       />
 
       <div className="main">
@@ -330,7 +334,11 @@ function DashboardContent() {
         />
       </div>
 
-      <AIAssistant />
+      <AIAssistant
+        displayName={displayName}
+        location={location}
+        criticalZones={zones.filter(z => z.level >= 85).map(z => z.name)}
+      />
 
       {showDestModal && (
         <DestinationModal

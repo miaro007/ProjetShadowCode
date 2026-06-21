@@ -318,62 +318,59 @@ function UserLocation() {
 }
 
 // ─── Animation des véhicules (simulation GPS) ────────────────────
-function useRealtimeVehicles(initial: Vehicle[], simulationMode?: boolean, zones?: HotZone[]): Vehicle[] {
+function useRealtimeVehicles(initial: Vehicle[], userCoords?: [number, number] | null, zones?: HotZone[]): Vehicle[] {
   const [vehicles, setVehicles] = useState<Vehicle[]>(initial);
 
   useEffect(() => {
-    // Si on n'est pas en mode simulation, on écoute juste Supabase
-    if (!simulationMode) {
-      supabase.from("vehicles").select("*").then(({ data }) => {
-        if (data && data.length > 0) setVehicles(data);
-        else setVehicles(initial);
-      });
+    // MODE SIMULATION ACTIVE TOUJOURS POUR LE HACKATHON
+    const TANA_PATHS: [number, number][][] = [
+      [[-18.8712, 47.5412], [-18.8800, 47.5300], [-18.8930, 47.5170], [-18.8950, 47.5290], [-18.9130, 47.5360]], // Axe Ivandry -> Analakely
+      [[-18.9241, 47.5081], [-18.9130, 47.5150], [-18.9184, 47.4921], [-18.9050, 47.5300]], // Andohatapenaka -> Soarano
+      [[-18.8948, 47.5289], [-18.9100, 47.5200], [-18.9312, 47.4989], [-18.9621, 47.4812]], // 67ha -> By-pass
+      [[-18.9087, 47.5234], [-18.9137, 47.5361], [-18.9184, 47.4921]], // Ambanidia -> Analakely -> Mahazo
+    ];
 
-      const channel = supabase
-        .channel("vehicles-live")
-        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "vehicles" }, payload => {
-          setVehicles(prev => prev.map(v => v.id === payload.new.id ? { ...v, ...payload.new } : v));
-        }).subscribe();
-      return () => { supabase.removeChannel(channel); };
-    }
+    const FIANA_PATHS: [number, number][][] = [
+      [[-21.4450, 47.0880], [-21.4500, 47.0850], [-21.4560, 47.0820], [-21.4600, 47.0800]], // Axe principal Fiana
+      [[-21.4527, 47.0857], [-21.4480, 47.0860], [-21.4400, 47.0900]],
+      [[-21.4560, 47.0820], [-21.4580, 47.0750], [-21.4650, 47.0700]],
+    ];
 
-    // MODE SIMULATION ACTIVE
-    let simVehicles: Vehicle[] = [...initial].map(v => ({
-      ...v,
-      dirLat: Math.random() - 0.5,
-      dirLng: Math.random() - 0.5
-    }));
+    type SimVehicle = Vehicle & { path: [number, number][]; pathIndex: number; pathDir: number };
 
-    // Générer 25 piétons
-    for (let i = 0; i < 25; i++) {
-      simVehicles.push({
-        id: `ped-${i}`, type: "pedestrian",
-        lat: -18.91 + (Math.random() - 0.5) * 0.08,
-        lng: 47.52 + (Math.random() - 0.5) * 0.08,
-        speed: 5 + Math.random() * 2,
-        dirLat: Math.random() - 0.5, dirLng: Math.random() - 0.5
-      });
-    }
-    // Générer 30 voitures
-    for (let i = 0; i < 30; i++) {
-      simVehicles.push({
-        id: `sim-car-${i}`, type: "car",
-        lat: -18.91 + (Math.random() - 0.5) * 0.1,
-        lng: 47.52 + (Math.random() - 0.5) * 0.1,
-        speed: 20 + Math.random() * 30,
-        dirLat: Math.random() - 0.5, dirLng: Math.random() - 0.5
-      });
-    }
-    // Générer 15 motos
-    for (let i = 0; i < 15; i++) {
-      simVehicles.push({
-        id: `sim-moto-${i}`, type: "moto",
-        lat: -18.91 + (Math.random() - 0.5) * 0.1,
-        lng: 47.52 + (Math.random() - 0.5) * 0.1,
-        speed: 35 + Math.random() * 20,
-        dirLat: Math.random() - 0.5, dirLng: Math.random() - 0.5
-      });
-    }
+    let simVehicles: SimVehicle[] = [];
+
+    const addVehicles = (paths: [number, number][][], count: number, types: ("car"|"moto"|"taxibe"|"pedestrian")[]) => {
+      for (let i = 0; i < count; i++) {
+        const path = paths[i % paths.length];
+        const pathIndex = Math.floor(Math.random() * (path.length - 1));
+        const startPoint = path[pathIndex];
+        const type = types[i % types.length];
+        
+        let speed = 20;
+        if (type === "pedestrian") speed = 5;
+        if (type === "moto") speed = 35;
+        if (type === "taxibe") speed = 15;
+        
+        simVehicles.push({
+          id: `veh-${Math.random().toString(36).substring(2,9)}`,
+          type,
+          lat: startPoint[0],
+          lng: startPoint[1],
+          speed: speed + (Math.random() * 10 - 5),
+          path,
+          pathIndex,
+          pathDir: Math.random() > 0.5 ? 1 : -1,
+          line: type === "taxibe" ? ["140", "194", "167", "119", "F1"][i % 5] : undefined,
+        });
+      }
+    };
+
+    // Tana (60 véhicules)
+    addVehicles(TANA_PATHS, 60, ["car", "car", "taxibe", "moto", "pedestrian"]);
+    
+    // Fianarantsoa (30 véhicules)
+    addVehicles(FIANA_PATHS, 30, ["car", "taxibe", "moto", "pedestrian"]);
 
     setVehicles(simVehicles);
 
@@ -386,13 +383,14 @@ function useRealtimeVehicles(initial: Vehicle[], simulationMode?: boolean, zones
       lastTime = now;
 
       setVehicles(prev => prev.map(v => {
-        let currentSpeed = v.speed;
+        const pv = v as SimVehicle;
+        let currentSpeed = pv.speed;
         let inBouchon = false;
 
         if (zones) {
           for (const z of zones) {
             if (z.level >= 80) {
-              const dist = Math.sqrt(Math.pow(v.lat - z.lat, 2) + Math.pow(v.lng - z.lng, 2));
+              const dist = Math.sqrt(Math.pow(pv.lat - z.lat, 2) + Math.pow(pv.lng - z.lng, 2));
               if (dist < 0.004) { // Dans un bouchon
                 inBouchon = true; break;
               }
@@ -400,34 +398,42 @@ function useRealtimeVehicles(initial: Vehicle[], simulationMode?: boolean, zones
           }
         }
 
-        // Effet bouchon : vitesse réduite à 5%
-        if (inBouchon && v.type !== "pedestrian") {
-          currentSpeed *= 0.05;
+        if (inBouchon && pv.type !== "pedestrian") {
+          currentSpeed *= 0.1; // Ralentissement massif
         }
 
-        // Vitesse accélérée artificiellement pour la démo visuelle
         const degPerSec = currentSpeed * 0.0000025 * 50; 
         
-        let dLat = v.dirLat || (Math.random() - 0.5);
-        let dLng = v.dirLng || (Math.random() - 0.5);
-
-        // Changement de direction aléatoire (1% de chance)
-        if (Math.random() < 0.01) {
-          dLat = Math.random() - 0.5;
-          dLng = Math.random() - 0.5;
+        const targetPoint = pv.path[pv.pathIndex + pv.pathDir];
+        if (!targetPoint) {
+          // Inverser la direction au bout du chemin
+          pv.pathDir *= -1;
+          return pv;
         }
 
-        const len = Math.sqrt(dLat * dLat + dLng * dLng) || 1;
-        dLat /= len; dLng /= len;
+        const dy = targetPoint[0] - pv.lat;
+        const dx = targetPoint[1] - pv.lng;
+        const dist = Math.sqrt(dx * dx + dy * dy);
 
-        let nextLat = v.lat + dLat * degPerSec * dt;
-        let nextLng = v.lng + dLng * degPerSec * dt;
+        if (dist < 0.001) {
+          pv.pathIndex += pv.pathDir;
+          if (pv.pathIndex >= pv.path.length - 1 || pv.pathIndex <= 0) {
+            pv.pathDir *= -1; // Demi-tour
+          }
+          return pv;
+        }
 
-        // Limites de Tana
-        if (nextLat > -18.85 || nextLat < -18.96) dLat *= -1;
-        if (nextLng > 47.58 || nextLng < 47.48) dLng *= -1;
+        const dirLat = dy / dist;
+        const dirLng = dx / dist;
 
-        return { ...v, lat: nextLat, lng: nextLng, dirLat: dLat, dirLng: dLng };
+        let nextLat = pv.lat + dirLat * degPerSec * dt;
+        let nextLng = pv.lng + dirLng * degPerSec * dt;
+
+        // Éviter de dépasser le point cible
+        if (Math.abs(nextLat - pv.lat) > Math.abs(dy)) nextLat = targetPoint[0];
+        if (Math.abs(nextLng - pv.lng) > Math.abs(dx)) nextLng = targetPoint[1];
+
+        return { ...pv, lat: nextLat, lng: nextLng, dirLat, dirLng };
       }));
 
       animationFrameId = requestAnimationFrame(updatePositions);
@@ -435,7 +441,7 @@ function useRealtimeVehicles(initial: Vehicle[], simulationMode?: boolean, zones
 
     animationFrameId = requestAnimationFrame(updatePositions);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [simulationMode, zones]);
+  }, [userCoords, zones]);
 
   return vehicles;
 }
@@ -479,7 +485,7 @@ function MapLegend({ t, zones }: { t: any, zones: HotZone[] }) {
 // ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────
 export default function TrafficMap({ zones, selectedTrajet, userCoords, simulationMode }: Props) {
   const { t } = useLanguage();
-  const vehicles = useRealtimeVehicles(INITIAL_VEHICLES, simulationMode, zones);
+  const vehicles = useRealtimeVehicles(INITIAL_VEHICLES, userCoords, zones);
   const [routeInfo, setRouteInfo] = useState<{ distKm: string, durCarMin: number, durFootMin: number } | null>(null);
 
   // Fix icônes Leaflet (Next.js)

@@ -58,11 +58,8 @@ export default function Login() {
         <div className="logo-wrap">
           <div className="pulse" />
           <h1 className="brand">Ambota<b>kany</b></h1>
-          <p className="slogan" style={{color: "rgba(255,255,255,0.6)", fontSize: "14px", marginTop: "8px", fontWeight: 500}}>
-            On transforme le blocage en destination réussie.
-          </p>
         </div>
-        
+
         <p className="subtitle">Accédez à vos trajets personnalisés et signalez des incidents en temps réel.</p>
 
         <div className="form">

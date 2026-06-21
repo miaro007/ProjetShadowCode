@@ -27,26 +27,22 @@ interface Message {
 
 // ─── Contexte Utilisateur : Spécifique Madagascar (Tana) ───────────
 const USER_CONTEXT = `
-Tu es ARIA, l'assistante IA en temps réel experte du trafic, des transports et de toutes les fonctionnalités de l'application à Antananarivo, Madagascar.
-Tu as accès à TOUTES les données en temps réel : lignes de bus, arrêts, itinéraires, et alertes de la communauté. Tu connais tout sur l'application.
+Tu es ARIA, le premier assistant IA de mobilité urbaine pour l'Afrique, capable d'anticiper les embouteillages, recommander des itinéraires intelligents et optimiser les déplacements quotidiens des citoyens.
+Tu n'es PAS un simple chatbot. Tu es un Conseiller de mobilité urbaine intelligent.
 
-Contexte actuel d'Antananarivo :
-- Points noirs saturés en ce moment : Rond-point Anosizato (bloqué par des camions), Pont d'Ampasika (circulation alternée difficile), Soarano (marchands de rue).
-- Axes fluides : Route des Hydrocarbures (Ankorondrano), Alarobia.
-- Coopératives majeures à disposition : Ligne 119 (Ankatso - Analakely - 67ha), Ligne 165 (Ankatso - Ivato), Ligne 194 (Itaosy - Analakely).
+Tes 4 missions principales :
+1. Guider : proposer des itinéraires intelligents et multimodaux.
+2. Alerter : prévenir des bouchons, accidents, inondations.
+3. Prédire : anticiper le trafic futur (ex: "Un ralentissement est attendu à 17h").
+4. Optimiser : recommander la meilleure heure de départ et le meilleur moyen de transport (ex: "Je recommande de partir dans 15 min via le Taxi-be 119").
 
-Actions disponibles :
-1. EVITER_AXE : recalculer un itinéraire pour contourner un bouchon.
-2. TROUVER_TAXI_BE : proposer la meilleure ligne de Taxi-be pour un trajet fluide.
-3. SIGNALER_BOUCHON : enregistrer un signalement communautaire.
-
-Règles :
-- Réponds toujours en français, de façon concise, dynamique et chaleureuse.
+Règles strictes :
+- Ne te contente jamais de donner une information passive (ex: "Il y a un bouchon"). Propose TOUJOURS une solution (ex: "Je recommande de passer par Ivandry").
+- Analyse le contexte (GPS, heure, météo, signalements) automatiquement pour faire tes recommandations.
+- Réponds toujours en français, de façon concise, proactive et chaleureuse.
 - Utilise occasionnellement des expressions amicales malgaches ("Manao ahoana", "Misaotra", "Podera e !").
-- Propose toujours 2-3 suggestions de suivi courtes à la fin de chaque message.
-- Format JSON strict pour les actions : {"action": "EVITER_AXE|TROUVER_TAXI_BE|SIGNALER_BOUCHON", "label": "...", "target": "..."}
-- Si tu proposes une action automatique, inclus le JSON entre balises <ACTION> et </ACTION>. Ne le mets jamais dans le texte visible.
-- Suggestions format : <SUGGESTIONS>suggestion1|suggestion2|suggestion3</SUGGESTIONS>
+- Format JSON strict pour les actions automatiques : {"action": "EVITER_AXE|TROUVER_TAXI_BE|SIGNALER_BOUCHON", "label": "...", "target": "..."} à mettre entre balises <ACTION> et </ACTION>.
+- Propose 2-3 suggestions de suivi courtes à la fin de chaque message au format <SUGGESTIONS>suggestion1|suggestion2</SUGGESTIONS>.
 `;
 
 // ─── Parseur de réponses de l'IA ────────────────────────────────────
@@ -134,19 +130,61 @@ function ActionCard({ action, onConfirm }: { action: Action; onConfirm: () => vo
   );
 }
 
-// ─── Message de Bienvenue (Tana) ───────────────────────────────────
-const WELCOME_MESSAGE: Message = {
-  id: "welcome",
-  role: "assistant",
-  content: "Manao ahoana ! Je suis ARIA, ton copilote info-trafic à Antananarivo 🚗💨\n\nAttention, le **Pont d'Anosizato** est complètement paralysé par des camions ce secteur est à éviter. Où vas-tu aujourd'hui ?",
-  suggestions: ["Éviter Anosizato", "Taxi-be pour aller à Ankatso", "Signaler un bouchon"],
-  timestamp: new Date(),
-};
+// ─── Message de Bienvenue Proactif ───────────────────────────────────
+function buildWelcomeMessage(displayName?: string, location?: string, criticalZones?: string[]): Message {
+  const hour = new Date().getHours();
+  const name = displayName ?? "";
 
-// ─── Composant Principal Réparé ─────────────────────────────────────
-export default function AIAssistant() {
+  let greeting = "Bonjour";
+  let emoji = "☀️";
+  if (hour >= 12 && hour < 17) { greeting = "Bon après-midi"; emoji = "🌤️"; }
+  else if (hour >= 17 && hour < 21) { greeting = "Bonsoir"; emoji = "🌇"; }
+  else if (hour >= 21 || hour < 5) { greeting = "Bonne nuit"; emoji = "🌙"; }
+
+  const isRushMorning = hour >= 6 && hour < 9;
+  const isRushEvening = hour >= 17 && hour < 20;
+  const loc = location ?? "Antananarivo";
+  const zones = criticalZones && criticalZones.length > 0 ? criticalZones : ["Anosizato", "Soarano"];
+
+  let content = `${greeting}${name ? ` ${name}` : ""} ! ${emoji} Je suis **ARIA**, votre assistante de mobilité urbaine.\n\n`;
+
+  if (isRushMorning) {
+    content += `⚠️ **Heure de pointe matinale détectée** — Le trafic est dense autour de **${zones[0]}** et **${zones[1] ?? "Ampasika"}**.\n\n`;
+    content += `💡 **Ma recommandation :** Privilégiez le **Taxi-be Ligne 119** depuis ${loc} — il contourne les embouteillages et vous fait gagner ~30 min vs la voiture.\n\nQuel est votre destination aujourd'hui ?`;
+  } else if (isRushEvening) {
+    content += `🚨 **Heure de pointe du soir** — Saturations prévues jusqu'à 20h sur les axes principaux.\n\n`;
+    content += `💡 **Je recommande** de ne partir qu'après **20h** si possible — ou de prendre la **Ligne 194** pour éviter les bouchons.\n\nOù allez-vous ?`;
+  } else {
+    content += `Le trafic est **actuellement fluide** sur la plupart des axes de ${loc}. C'est le bon moment pour se déplacer !\n\n💡 Posez-moi votre destination pour un itinéraire optimisé en temps réel.`;
+  }
+
+  const suggestions = isRushMorning
+    ? ["Itinéraire vers Analakely", "Quel taxi-be prendre ?", "Éviter Anosizato"]
+    : isRushEvening
+    ? ["Rentrer à la maison", "Heure de départ optimale ?", "Itinéraire alternatif"]
+    : ["Itinéraire vers Analakely", "Prédictions trafic de 17h", "Signaler un problème"];
+
+  return {
+    id: "welcome",
+    role: "assistant",
+    content,
+    suggestions,
+    timestamp: new Date(),
+  };
+}
+
+// ─── Composant Principal ─────────────────────────────────────────────
+export default function AIAssistant({
+  displayName,
+  location,
+  criticalZones,
+}: {
+  displayName?: string;
+  location?: string;
+  criticalZones?: string[];
+}) {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
+  const [messages, setMessages] = useState<Message[]>(() => [buildWelcomeMessage(displayName, location, criticalZones)]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [pulse, setPulse] = useState(true);
@@ -298,7 +336,17 @@ export default function AIAssistant() {
   useEffect(() => {
     const handler = (e: CustomEvent) => {
       const msg = e.detail?.message;
-      if (msg) {
+      const forcedResponse = e.detail?.response;
+      
+      if (forcedResponse) {
+        setOpen(true);
+        setMessages(prev => [
+          ...prev,
+          { id: crypto.randomUUID(), role: "user", content: msg || "Trajet validé.", timestamp: new Date() },
+          { id: crypto.randomUUID(), role: "assistant", content: forcedResponse, timestamp: new Date() }
+        ]);
+        setTimeout(() => speakText(forcedResponse), 500);
+      } else if (msg) {
         setOpen(true);           
         setInput(msg);           
       }
@@ -349,6 +397,10 @@ export default function AIAssistant() {
         content: m.content,
       }));
 
+      const now = new Date();
+      const timeStr = `${now.getHours()}h${String(now.getMinutes()).padStart(2,"0")}`;
+      const dayName = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"][now.getDay()];
+
       const response = await fetch("/api/aria", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -356,6 +408,12 @@ export default function AIAssistant() {
           system: USER_CONTEXT,
           messages: history,
           userLocation,
+          context: {
+            time: timeStr,
+            day: dayName,
+            location: location ?? "Antananarivo",
+            criticalZones: criticalZones ?? [],
+          },
         }),
       });
 
@@ -512,7 +570,7 @@ export default function AIAssistant() {
                   width: 6, height: 6, borderRadius: "50%",
                   background: "#00D4A4", display: "inline-block",
                 }} />
-                Info-Trafic Tana · Live
+                Conseiller mobilité · {location ?? "Antananarivo"} · Live
               </div>
             </div>
             

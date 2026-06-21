@@ -15,6 +15,10 @@ export const ZONES_CRITIQUES: HotZone[] = [
   { id: 6, name: "Ambanidia (Tunnel)", lat: -18.9087, lng: 47.5234, level: 68, vehicleCount: 278, avgSpeed: 22, trend: "stable" },
   { id: 7, name: "Anosizato Est", lat: -18.9312, lng: 47.4989, level: 59, vehicleCount: 187, avgSpeed: 28, trend: "decreasing" },
   { id: 8, name: "By-Pass (Tanjombato)", lat: -18.9621, lng: 47.4812, level: 32, vehicleCount: 94, avgSpeed: 52, trend: "stable", alternativeRoute: "✅ Route alternative recommandée" },
+  // Fianarantsoa Hot Zones
+  { id: 9, name: "Ambatomena (Fianarantsoa)", lat: -21.4500, lng: 47.0850, level: 88, vehicleCount: 310, avgSpeed: 5, trend: "increasing", alternativeRoute: "Via Tambohobe" },
+  { id: 10, name: "Tsianolondroa (Fianarantsoa)", lat: -21.4560, lng: 47.0820, level: 92, vehicleCount: 420, avgSpeed: 8, trend: "stable" },
+  { id: 11, name: "Anjoma (Fianarantsoa)", lat: -21.4450, lng: 47.0880, level: 75, vehicleCount: 200, avgSpeed: 14, trend: "decreasing" },
 ];
 
 export const TRAJETS_QUOTIDIENS: TrajetItem[] = [

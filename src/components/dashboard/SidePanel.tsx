@@ -1,17 +1,115 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { COLORS } from "@/lib/dashboard-data";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/lib/supabase";
 
 // ═══════════════════════════════════════════════════════════════════
-// 🏆 SIDEPANEL – 5 Fonctionnalités Phares Hackathon
+// 🏆 SIDEPANEL – 5 Fonctionnalités Phares Hackathon (TEMPS RÉEL)
 // ═══════════════════════════════════════════════════════════════════
 
 type Tab = "multimodal" | "vocal" | "meteo" | "confiance" | "escape";
 
-// ── Données Sortie de Secours ──
-const ESCAPE_CONGESTION_DATA = [
+// ── Types pour le temps réel ──
+interface ItineraryStep {
+  type: string;
+  label: string;
+  from: string;
+  to: string;
+  duration: string;
+  durationMin: number; // valeur numérique pour les calculs
+  status: "dense" | "fluide" | "ok" | "critique";
+  icon: string;
+}
+
+interface Prediction {
+  jour: string;
+  heure: string;
+  niveau: number;
+  label: string;
+  detail: string;
+}
+
+interface LigneData {
+  num: string;
+  trajet: string;
+  fiabilite: number;
+  votes: number;
+  etat: "fluide" | "dense" | "critique";
+  color: string;
+}
+
+interface EscapeCongestionPoint {
+  km: number;
+  level: number;
+  label: string;
+}
+
+// ── Helpers ──
+function clamp(val: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, val));
+}
+
+function formatTime(d: Date) {
+  return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function timeAgo(d: Date): string {
+  const diff = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (diff < 5) return "à l'instant";
+  if (diff < 60) return `il y a ${diff}s`;
+  return `il y a ${Math.floor(diff / 60)}min`;
+}
+
+function getStatusFromDuration(durMin: number, baseDurMin: number): "fluide" | "dense" | "ok" | "critique" {
+  const ratio = durMin / baseDurMin;
+  if (ratio <= 1.1) return "fluide";
+  if (ratio <= 1.5) return "dense";
+  if (ratio <= 2.0) return "dense";
+  return "critique";
+}
+
+function getLabelFromNiveau(n: number): string {
+  if (n >= 85) return "SATURÉ";
+  if (n >= 65) return "DENSE";
+  if (n >= 40) return "MODÉRÉ";
+  return "FLUIDE";
+}
+
+function getEtatFromFiabilite(f: number): "fluide" | "dense" | "critique" {
+  if (f >= 70) return "fluide";
+  if (f >= 40) return "dense";
+  return "critique";
+}
+
+function getColorFromEtat(etat: string): string {
+  if (etat === "fluide") return "#00E5A0";
+  if (etat === "dense") return "#FFB800";
+  return "#FF3D00";
+}
+
+// ── Données initiales ──
+const INITIAL_ITINERARY: ItineraryStep[] = [
+  { type: "taxibe", label: "Ligne 140", from: "Ivandry", to: "Anosizato", duration: "12 min", durationMin: 12, status: "dense", icon: "🚌" },
+  { type: "walk", label: "Mandeha tongotra", from: "Anosizato", to: "Pont Ampasika", duration: "8 min (800m)", durationMin: 8, status: "ok", icon: "🚶" },
+  { type: "taxibe", label: "Ligne 194", from: "Pont Ampasika", to: "Analakely", duration: "9 min", durationMin: 9, status: "fluide", icon: "🚌" },
+];
+
+const INITIAL_PREDICTIONS: Prediction[] = [
+  { jour: "Dimanche (aujourd'hui)", heure: "15h–19h", niveau: 60, label: "MODÉRÉ", detail: "Retour de week-end" },
+  { jour: "Lundi matin", heure: "07h–09h", niveau: 85, label: "SATURÉ", detail: "Rentrée scolaire + marché Anosibe" },
+  { jour: "Lundi soir", heure: "17h–19h", niveau: 90, label: "SATURÉ", detail: "Heure de pointe" },
+];
+
+const INITIAL_LIGNES: LigneData[] = [
+  { num: "140", trajet: "Ivandry → Analakely", fiabilite: 87, votes: 214, etat: "fluide", color: "#00E5A0" },
+  { num: "194", trajet: "Ampasika → Soarano", fiabilite: 62, votes: 98, etat: "dense", color: "#FFB800" },
+  { num: "167", trajet: "Anosizato → 67ha", fiabilite: 31, votes: 47, etat: "critique", color: "#FF3D00" },
+  { num: "119", trajet: "Ambohipo → Analakely", fiabilite: 79, votes: 133, etat: "fluide", color: "#00E5A0" },
+];
+
+const INITIAL_ESCAPE_CONGESTION: EscapeCongestionPoint[] = [
   { km: 0, level: 20, label: "Votre position" },
   { km: 0.3, level: 45, label: "" },
   { km: 0.6, level: 72, label: "" },
@@ -29,27 +127,29 @@ const ESCAPE_STEPS = [
   { icon: "🚌", action: "Prendre Ligne 194", detail: "Axe fluide → Analakely en 12 min", color: "#00E5A0" },
 ];
 
-// ── Données Mockées ──
-const ITINERARY_STEPS = [
-  { type: "taxibe", label: "Ligne 140", from: "Ivandry", to: "Anosizato", duration: "12 min", status: "dense", icon: "🚌" },
-  { type: "walk", label: "Mandeha tongotra", from: "Anosizato", to: "Pont Ampasika", duration: "8 min (800m)", status: "ok", icon: "🚶" },
-  { type: "taxibe", label: "Ligne 194", from: "Pont Ampasika", to: "Analakely", duration: "9 min", status: "fluide", icon: "🚌" },
-];
+// ═══════════════════════════════════════════════════════════════════
+// 🔴 LIVE BADGE COMPONENT
+// ═══════════════════════════════════════════════════════════════════
+function LiveBadge({ lastUpdate }: { lastUpdate: Date }) {
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    const i = setInterval(() => forceUpdate(n => n + 1), 1000);
+    return () => clearInterval(i);
+  }, []);
 
-const PREDICTIONS = [
-  { jour: "Vendredi (demain)", heure: "15h–19h", niveau: 95, label: "SATURÉ", detail: "Fin de mois fonctionnaires + pluie probable" },
-  { jour: "Lundi matin", heure: "07h–09h", niveau: 75, label: "DENSE", detail: "Rentrée scolaire + marché Anosibe" },
-  { jour: "Mercredi soir", heure: "17h–19h", niveau: 55, label: "MODÉRÉ", detail: "Trafic normal" },
-];
+  return (
+    <div className="live-badge">
+      <span className="live-dot" />
+      <span className="live-text">LIVE</span>
+      <span className="live-ago">{timeAgo(lastUpdate)}</span>
+    </div>
+  );
+}
 
-const LIGNES = [
-  { num: "140", trajet: "Ivandry → Analakely", fiabilite: 87, votes: 214, etat: "fluide", color: "#00E5A0" },
-  { num: "194", trajet: "Ampasika → Soarano", fiabilite: 62, votes: 98, etat: "dense", color: "#FFB800" },
-  { num: "167", trajet: "Anosizato → 67ha", fiabilite: 31, votes: 47, etat: "critique", color: "#FF3D00" },
-  { num: "119", trajet: "Ambohipo → Analakely", fiabilite: 79, votes: 133, etat: "fluide", color: "#00E5A0" },
-];
-
-export default function SidePanel({ 
+// ═══════════════════════════════════════════════════════════════════
+// 🏆 MAIN COMPONENT
+// ═══════════════════════════════════════════════════════════════════
+export default function SidePanel({
   onSignalIncident,
   simulationMode = false,
   onToggleSimulation
@@ -68,6 +168,139 @@ export default function SidePanel({
   const [escapeAnalyzing, setEscapeAnalyzing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+
+  // ═══════════════════════════════════════════════════════════════
+  // 🔄 REAL-TIME STATE
+  // ═══════════════════════════════════════════════════════════════
+  const [itinerarySteps, setItinerarySteps] = useState<ItineraryStep[]>(INITIAL_ITINERARY);
+  const [totalDuration, setTotalDuration] = useState(29);
+  const [predictions, setPredictions] = useState<Prediction[]>(INITIAL_PREDICTIONS);
+  const [lignes, setLignes] = useState<LigneData[]>(INITIAL_LIGNES);
+  const [escapeCongestion, setEscapeCongestion] = useState<EscapeCongestionPoint[]>(INITIAL_ESCAPE_CONGESTION);
+  const [escapeWaitTime, setEscapeWaitTime] = useState(45);
+
+  // Timestamps pour chaque section
+  const [itineraryLastUpdate, setItineraryLastUpdate] = useState(new Date());
+  const [predictionLastUpdate, setPredictionLastUpdate] = useState(new Date());
+  const [lignesLastUpdate, setLignesLastUpdate] = useState(new Date());
+  const [escapeLastUpdate, setEscapeLastUpdate] = useState(new Date());
+
+  // ── 🔄 ITINÉRAIRE TEMPS RÉEL (toutes les 8s) ──
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setItinerarySteps(prev => {
+        const updated = prev.map(step => {
+          const baseDur = step.type === "walk" ? 8 : step.durationMin;
+          // Fluctuation réaliste : ±15% pour les bus, ±5% pour la marche
+          const variance = step.type === "walk" ? 0.05 : 0.15;
+          const delta = (Math.random() - 0.5) * 2 * variance * baseDur;
+          const newDur = clamp(Math.round(baseDur + delta), Math.max(3, baseDur - 5), baseDur + 10);
+          const newStatus = step.type === "walk"
+            ? "ok" as const
+            : getStatusFromDuration(newDur, baseDur);
+          const durStr = step.type === "walk"
+            ? `${newDur} min (800m)`
+            : `${newDur} min`;
+          return { ...step, duration: durStr, durationMin: newDur, status: newStatus };
+        });
+        return updated;
+      });
+      setItinerarySteps(prev => {
+        const total = prev.reduce((sum, s) => sum + s.durationMin, 0);
+        setTotalDuration(total);
+        return prev;
+      });
+      setItineraryLastUpdate(new Date());
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // ── 🔄 PRÉDICTIONS TEMPS RÉEL (toutes les 12s) ──
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPredictions(prev => prev.map(p => {
+        const delta = Math.round((Math.random() - 0.5) * 8);
+        const newNiveau = clamp(p.niveau + delta, 15, 99);
+        return {
+          ...p,
+          niveau: newNiveau,
+          label: getLabelFromNiveau(newNiveau),
+        };
+      }));
+      setPredictionLastUpdate(new Date());
+    }, 12000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // ── 🔄 LIGNES CONFIANCE TEMPS RÉEL (toutes les 10s + Supabase) ──
+  useEffect(() => {
+    // Simulation locale avec variation réaliste
+    const interval = setInterval(() => {
+      setLignes(prev => prev.map(l => {
+        const fiabDelta = Math.round((Math.random() - 0.5) * 6);
+        const voteDelta = Math.random() > 0.6 ? Math.round(Math.random() * 3) : 0;
+        const newFiab = clamp(l.fiabilite + fiabDelta, 10, 99);
+        const newVotes = l.votes + voteDelta;
+        const newEtat = getEtatFromFiabilite(newFiab);
+        const newColor = getColorFromEtat(newEtat);
+        return { ...l, fiabilite: newFiab, votes: newVotes, etat: newEtat, color: newColor };
+      }));
+      setLignesLastUpdate(new Date());
+    }, 10000);
+
+    // Supabase Realtime - écouter les changements sur la table 'lignes' si elle existe
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    try {
+      channel = supabase
+        .channel("lignes-realtime")
+        .on("postgres_changes", { event: "*", schema: "public", table: "lignes" }, (payload) => {
+          if (payload.new && typeof payload.new === "object") {
+            const newData = payload.new as Record<string, unknown>;
+            setLignes(prev => prev.map(l =>
+              l.num === String(newData.num)
+                ? {
+                  ...l,
+                  fiabilite: Number(newData.fiabilite) || l.fiabilite,
+                  votes: Number(newData.votes) || l.votes,
+                  etat: (newData.etat as LigneData["etat"]) || l.etat,
+                }
+                : l
+            ));
+            setLignesLastUpdate(new Date());
+          }
+        })
+        .subscribe();
+    } catch {
+      // Table might not exist - simulation only is fine
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // ── 🔄 CONGESTION ESCAPE TEMPS RÉEL (toutes les 5s quand escape actif) ──
+  useEffect(() => {
+    if (!escapeActive) return;
+
+    const interval = setInterval(() => {
+      setEscapeCongestion(prev => prev.map(point => {
+        const delta = Math.round((Math.random() - 0.5) * 10);
+        const newLevel = clamp(point.level + delta, 5, 99);
+        return { ...point, level: newLevel };
+      }));
+      setEscapeWaitTime(prev => {
+        const delta = Math.round((Math.random() - 0.5) * 4);
+        return clamp(prev + delta, 15, 90);
+      });
+      setEscapeLastUpdate(new Date());
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [escapeActive]);
 
   // ── Enregistrement Vocal ──
   const startRecording = useCallback(async () => {
@@ -100,6 +333,16 @@ export default function SidePanel({
 
   const handleVote = (ligneNum: string, dir: "up" | "down") => {
     setVotes(prev => ({ ...prev, [ligneNum]: prev[ligneNum] === dir ? null : dir }));
+    // Update fiabilité based on vote
+    setLignes(prev => prev.map(l => {
+      if (l.num !== ligneNum) return l;
+      const delta = dir === "up" ? 2 : -2;
+      const newFiab = clamp(l.fiabilite + delta, 10, 99);
+      const newEtat = getEtatFromFiabilite(newFiab);
+      const newColor = getColorFromEtat(newEtat);
+      return { ...l, fiabilite: newFiab, votes: l.votes + 1, etat: newEtat, color: newColor };
+    }));
+    setLignesLastUpdate(new Date());
   };
 
   const triggerEscapeAnalysis = useCallback(() => {
@@ -108,6 +351,7 @@ export default function SidePanel({
     setTimeout(() => {
       setEscapeAnalyzing(false);
       setEscapeActive(true);
+      setEscapeLastUpdate(new Date());
     }, 2000);
   }, []);
 
@@ -145,7 +389,7 @@ export default function SidePanel({
         ))}
       </div>
 
-      {/* ── 1. ITINÉRAIRE MULTIMODAL ── */}
+      {/* ── 1. ITINÉRAIRE MULTIMODAL (TEMPS RÉEL) ── */}
       {tab === "multimodal" && (
         <div className="content">
           <div className="section-header">
@@ -153,17 +397,19 @@ export default function SidePanel({
             <span className="section-sub">{t("route.sub")}</span>
           </div>
 
+          <LiveBadge lastUpdate={itineraryLastUpdate} />
+
           <div className="alert-banner">
             <span>⚠️</span>
             <span>{t("route.alert")}</span>
           </div>
 
           <div className="steps">
-            {ITINERARY_STEPS.map((step, i) => (
+            {itinerarySteps.map((step, i) => (
               <div key={i} className="step">
                 <div className="step-icon-wrap">
                   <div className="step-icon">{step.icon}</div>
-                  {i < ITINERARY_STEPS.length - 1 && <div className="step-line" />}
+                  {i < itinerarySteps.length - 1 && <div className="step-line" />}
                 </div>
                 <div className="step-body">
                   <div className="step-top">
@@ -171,7 +417,7 @@ export default function SidePanel({
                     <span className={`step-badge ${step.status}`}>{step.status}</span>
                   </div>
                   <div className="step-route">{step.from} → {step.to}</div>
-                  <div className="step-duration">⏱ {step.duration}</div>
+                  <div className="step-duration realtime-value">⏱ {step.duration}</div>
                 </div>
               </div>
             ))}
@@ -179,7 +425,7 @@ export default function SidePanel({
 
           <div className="total-bar">
             <span>{t("route.total")}</span>
-            <strong>29 min</strong>
+            <strong className="realtime-value">{totalDuration} min</strong>
           </div>
 
           <button className="cta-btn" onClick={() => window.dispatchEvent(new CustomEvent("aria-open", { detail: { message: "ARIA, donne-moi le meilleur itinéraire multimodal depuis Ivandry vers Analakely en combinant Taxi-be et marche à pied. Il y a un bouchon à Anosizato." } }))}>
@@ -238,13 +484,15 @@ export default function SidePanel({
         </div>
       )}
 
-      {/* ── 3. MÉTÉO DU TRAFIC ── */}
+      {/* ── 3. MÉTÉO DU TRAFIC (TEMPS RÉEL) ── */}
       {tab === "meteo" && (
         <div className="content">
           <div className="section-header">
             <h2 className="section-title">{t("meteo.title")}</h2>
             <span className="section-sub">{t("meteo.sub")}</span>
           </div>
+
+          <LiveBadge lastUpdate={predictionLastUpdate} />
 
           <div className="aria-prediction">
             <div className="aria-avatar">🤖</div>
@@ -254,7 +502,7 @@ export default function SidePanel({
           </div>
 
           <div className="predictions">
-            {PREDICTIONS.map((p, i) => (
+            {predictions.map((p, i) => (
               <div key={i} className="pred-card">
                 <div className="pred-top">
                   <div>
@@ -269,13 +517,14 @@ export default function SidePanel({
                   <div className="pred-bar" style={{ width: `${p.niveau}%`, background: p.niveau >= 80 ? '#FF3D00' : p.niveau >= 50 ? '#FFB800' : '#00E5A0' }} />
                 </div>
                 <div className="pred-detail">📍 {p.detail}</div>
+                <div className="pred-niveau-value">{p.niveau}%</div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* ── 4. STATUT DE CONFIANCE ── */}
+      {/* ── 4. STATUT DE CONFIANCE (TEMPS RÉEL) ── */}
       {tab === "confiance" && (
         <div className="content">
           <div className="section-header">
@@ -283,8 +532,10 @@ export default function SidePanel({
             <span className="section-sub">{t("trust.sub")}</span>
           </div>
 
+          <LiveBadge lastUpdate={lignesLastUpdate} />
+
           <div className="lignes">
-            {LIGNES.map((l) => (
+            {lignes.map((l) => (
               <div key={l.num} className="ligne-card">
                 <div className="ligne-top">
                   <div className="ligne-num" style={{ background: `${l.color}20`, color: l.color }}>
@@ -292,7 +543,7 @@ export default function SidePanel({
                   </div>
                   <div className="ligne-info">
                     <div className="ligne-trajet">{l.trajet}</div>
-                    <div className="ligne-votes">{l.votes} {t("trust.votes")}</div>
+                    <div className="ligne-votes realtime-value">{l.votes} {t("trust.votes")}</div>
                   </div>
                   <div className={`ligne-etat etat-${l.etat}`}>{l.etat}</div>
                 </div>
@@ -300,7 +551,7 @@ export default function SidePanel({
                   <div className="trust-bar" style={{ width: `${l.fiabilite}%`, background: l.color }} />
                 </div>
                 <div className="vote-row">
-                  <span className="trust-pct" style={{ color: l.color }}>{l.fiabilite}% {t("trust.reliable")}</span>
+                  <span className="trust-pct realtime-value" style={{ color: l.color }}>{l.fiabilite}% {t("trust.reliable")}</span>
                   <div className="vote-btns">
                     <button
                       className={`vote-btn up ${votes[l.num] === "up" ? "active" : ""}`}
@@ -318,7 +569,7 @@ export default function SidePanel({
         </div>
       )}
 
-      {/* ── 5. SORTIE DE SECOURS ── */}
+      {/* ── 5. SORTIE DE SECOURS (TEMPS RÉEL) ── */}
       {tab === "escape" && (
         <div className="content">
           <div className="section-header">
@@ -344,30 +595,32 @@ export default function SidePanel({
               </div>
               <p>{t("escape.scanning")}</p>
               <div className="scan-bars">
-                <div className="scan-bar" style={{animationDelay: '0s'}} />
-                <div className="scan-bar" style={{animationDelay: '0.2s'}} />
-                <div className="scan-bar" style={{animationDelay: '0.4s'}} />
-                <div className="scan-bar" style={{animationDelay: '0.6s'}} />
-                <div className="scan-bar" style={{animationDelay: '0.8s'}} />
+                <div className="scan-bar" style={{ animationDelay: '0s' }} />
+                <div className="scan-bar" style={{ animationDelay: '0.2s' }} />
+                <div className="scan-bar" style={{ animationDelay: '0.4s' }} />
+                <div className="scan-bar" style={{ animationDelay: '0.6s' }} />
+                <div className="scan-bar" style={{ animationDelay: '0.8s' }} />
               </div>
             </div>
           )}
 
           {escapeActive && (
             <>
+              <LiveBadge lastUpdate={escapeLastUpdate} />
+
               <div className="escape-alert">
                 <span className="escape-alert-icon">⚠️</span>
                 <div>
                   <strong>{t("escape.blocked")}</strong>
-                  <p>{t("escape.wait")} <b style={{color: '#FF3D00'}}>~45 min</b></p>
+                  <p>{t("escape.wait")} <b className="realtime-value" style={{ color: '#FF3D00' }}>~{escapeWaitTime} min</b></p>
                 </div>
               </div>
 
-              {/* Graphique de congestion */}
+              {/* Graphique de congestion TEMPS RÉEL */}
               <div className="congestion-graph">
                 <div className="graph-title">{t("escape.graph")}</div>
                 <div className="graph-bars">
-                  {ESCAPE_CONGESTION_DATA.map((d, i) => (
+                  {escapeCongestion.map((d, i) => (
                     <div key={i} className="graph-col">
                       <div
                         className="graph-bar"
@@ -382,9 +635,9 @@ export default function SidePanel({
                   ))}
                 </div>
                 <div className="graph-legend">
-                  <span className="leg"><span className="leg-dot" style={{background:'#00E5A0'}} /> {t("escape.fluid")}</span>
-                  <span className="leg"><span className="leg-dot" style={{background:'#FFB800'}} /> {t("escape.dense")}</span>
-                  <span className="leg"><span className="leg-dot" style={{background:'#FF3D00'}} /> {t("escape.blocked_short")}</span>
+                  <span className="leg"><span className="leg-dot" style={{ background: '#00E5A0' }} /> {t("escape.fluid")}</span>
+                  <span className="leg"><span className="leg-dot" style={{ background: '#FFB800' }} /> {t("escape.dense")}</span>
+                  <span className="leg"><span className="leg-dot" style={{ background: '#FF3D00' }} /> {t("escape.blocked_short")}</span>
                 </div>
               </div>
 
@@ -400,7 +653,7 @@ export default function SidePanel({
               <div className="escape-steps">
                 {ESCAPE_STEPS.map((s, i) => (
                   <div key={i} className="escape-step">
-                    <div className="escape-step-num" style={{background: `${s.color}20`, color: s.color}}>
+                    <div className="escape-step-num" style={{ background: `${s.color}20`, color: s.color }}>
                       {i + 1}
                     </div>
                     <div className="escape-step-body">
@@ -415,7 +668,7 @@ export default function SidePanel({
 
               <div className="total-bar">
                 <span>{t("escape.gain")}</span>
-                <strong style={{color: '#00E5A0'}}>{t("escape.gain_val")}</strong>
+                <strong style={{ color: '#00E5A0' }}>{t("escape.gain_val")}</strong>
               </div>
 
               <button className="cta-btn" onClick={() => window.dispatchEvent(new CustomEvent("aria-open", { detail: { message: "ARIA, mon bus est bloqué à Anosizato depuis 10 min. Analyse ma position GPS et donne-moi la sortie de secours la plus rapide. Quel arrêt descendre, quelle route à pied, et quel autre bus prendre ?" } }))}>
@@ -462,6 +715,41 @@ export default function SidePanel({
         @keyframes pulse-sim {
           0%, 100% { box-shadow: 0 0 10px rgba(0,229,160,0.2); }
           50% { box-shadow: 0 0 20px rgba(0,229,160,0.5); }
+        }
+
+        /* ── LIVE BADGE ── */
+        .live-badge {
+          display: flex; align-items: center; gap: 6px;
+          background: rgba(255,61,0,0.08);
+          border: 1px solid rgba(255,61,0,0.25);
+          border-radius: 999px;
+          padding: 5px 12px;
+          font-size: 10px;
+          font-weight: 800;
+          width: fit-content;
+          animation: live-glow 2s ease-in-out infinite;
+        }
+        @keyframes live-glow {
+          0%, 100% { border-color: rgba(255,61,0,0.25); }
+          50% { border-color: rgba(255,61,0,0.6); }
+        }
+        .live-dot {
+          width: 7px; height: 7px;
+          border-radius: 50%;
+          background: #FF3D00;
+          box-shadow: 0 0 6px #FF3D00;
+          animation: live-pulse 1.2s infinite;
+        }
+        @keyframes live-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.8); }
+        }
+        .live-text { color: #FF3D00; letter-spacing: 0.1em; }
+        .live-ago { color: rgba(255,255,255,0.35); font-weight: 600; }
+
+        /* ── REALTIME VALUE FLASH ── */
+        .realtime-value {
+          transition: all 0.4s ease;
         }
 
         /* ── TABS ── */
@@ -524,10 +812,12 @@ export default function SidePanel({
         .step-badge {
           font-size: 10px; font-weight: 700; padding: 2px 8px;
           border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em;
+          transition: all 0.4s ease;
         }
         .step-badge.fluide { background: rgba(0,229,160,0.12); color: ${COLORS.primary}; }
         .step-badge.dense { background: rgba(255,184,0,0.12); color: ${COLORS.warn}; }
         .step-badge.ok { background: rgba(0,229,160,0.12); color: ${COLORS.primary}; }
+        .step-badge.critique { background: rgba(255,61,0,0.12); color: #FF3D00; }
         .step-route { font-size: 11px; color: rgba(255,255,255,0.45); }
         .step-duration { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 2px; }
         .total-bar {
@@ -624,12 +914,14 @@ export default function SidePanel({
           background: rgba(255,255,255,0.03);
           border: 1px solid rgba(255,255,255,0.06);
           border-radius: 12px; padding: 12px;
+          position: relative;
         }
         .pred-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
         .pred-jour { font-size: 12px; font-weight: 700; color: #fff; }
         .pred-heure { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
         .pred-badge {
           font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px; letter-spacing: 0.05em;
+          transition: all 0.4s ease;
         }
         .pred-badge.niveau-high { background: rgba(255,61,0,0.15); color: #FF3D00; }
         .pred-badge.niveau-mid { background: rgba(255,184,0,0.15); color: ${COLORS.warn}; }
@@ -637,8 +929,13 @@ export default function SidePanel({
         .pred-bar-wrap {
           height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; margin-bottom: 8px; overflow: hidden;
         }
-        .pred-bar { height: 100%; border-radius: 2px; transition: width .5s ease; }
+        .pred-bar { height: 100%; border-radius: 2px; transition: width .6s ease, background .6s ease; }
         .pred-detail { font-size: 11px; color: rgba(255,255,255,0.4); }
+        .pred-niveau-value {
+          position: absolute; top: 12px; right: 12px;
+          font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.25);
+          font-variant-numeric: tabular-nums;
+        }
 
         /* ── CONFIANCE LIGNES ── */
         .lignes { display: flex; flex-direction: column; gap: 10px; }
@@ -653,18 +950,22 @@ export default function SidePanel({
         .ligne-num {
           padding: 4px 10px; border-radius: 8px;
           font-size: 13px; font-weight: 900; white-space: nowrap; flex-shrink: 0;
+          transition: background 0.4s ease, color 0.4s ease;
         }
         .ligne-info { flex: 1; }
         .ligne-trajet { font-size: 12px; font-weight: 600; color: #fff; }
         .ligne-votes { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 2px; }
-        .ligne-etat { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+        .ligne-etat {
+          font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+          transition: all 0.4s ease;
+        }
         .etat-fluide { background: rgba(0,229,160,0.12); color: ${COLORS.primary}; }
         .etat-dense { background: rgba(255,184,0,0.12); color: ${COLORS.warn}; }
         .etat-critique { background: rgba(255,61,0,0.12); color: #FF3D00; }
         .trust-bar-wrap {
           height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; margin-bottom: 8px; overflow: hidden;
         }
-        .trust-bar { height: 100%; border-radius: 2px; transition: width .5s ease; }
+        .trust-bar { height: 100%; border-radius: 2px; transition: width .6s ease, background .6s ease; }
         .vote-row { display: flex; justify-content: space-between; align-items: center; }
         .trust-pct { font-size: 11px; font-weight: 700; }
         .vote-btns { display: flex; gap: 6px; }
@@ -767,12 +1068,7 @@ export default function SidePanel({
         }
         .graph-bar {
           width: 100%; border-radius: 3px 3px 0 0;
-          animation: bar-grow 0.6s ease-out forwards;
-          transform-origin: bottom;
-        }
-        @keyframes bar-grow {
-          from { transform: scaleY(0); }
-          to { transform: scaleY(1); }
+          transition: height 0.6s ease, background 0.6s ease;
         }
         .graph-km { font-size: 8px; color: rgba(255,255,255,0.3); }
         .graph-legend {
@@ -796,6 +1092,81 @@ export default function SidePanel({
         .escape-step-body { flex: 1; }
         .escape-step-action { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 2px; }
         .escape-step-detail { font-size: 11px; color: rgba(255,255,255,0.45); }
+      `}</style>
+      <style jsx global>{`
+        /* ── LIGHT THEME OVERRIDES POUR SIDEPANEL ── */
+        .light-theme .pred-jour,
+        .light-theme .ligne-trajet,
+        .light-theme .trans-text,
+        .light-theme .escape-step-action {
+          color: #111 !important;
+        }
+        
+        .light-theme .pred-heure,
+        .light-theme .pred-detail,
+        .light-theme .ligne-votes,
+        .light-theme .escape-intro p,
+        .light-theme .escape-analyzing p,
+        .light-theme .escape-alert p,
+        .light-theme .graph-title,
+        .light-theme .graph-km,
+        .light-theme .leg,
+        .light-theme .escape-step-detail,
+        .light-theme .aria-bubble,
+        .light-theme .example,
+        .light-theme .example-title,
+        .light-theme .mic-label,
+        .light-theme .processing,
+        .light-theme .live-ago {
+          color: rgba(0,0,0,0.6) !important;
+        }
+
+        .light-theme .pred-niveau-value {
+          color: rgba(0,0,0,0.3) !important;
+        }
+
+        .light-theme .pred-card,
+        .light-theme .ligne-card,
+        .light-theme .escape-step,
+        .light-theme .congestion-graph,
+        .light-theme .examples,
+        .light-theme .vote-btn {
+          background: #fff !important;
+          border-color: rgba(0,0,0,0.15) !important;
+        }
+        
+        .light-theme .ligne-card:hover {
+          border-color: #007A55 !important;
+          background: rgba(0,122,85,0.03) !important;
+        }
+        
+        .light-theme .transcription-box {
+          background: rgba(0,122,85,0.06) !important;
+          border-color: rgba(0,122,85,0.2) !important;
+        }
+        
+        .light-theme .escape-intro {
+          background: rgba(255,61,0,0.05) !important;
+          border-color: rgba(255,61,0,0.15) !important;
+        }
+
+        .light-theme .live-badge {
+          background: rgba(255,61,0,0.08) !important;
+          border-color: rgba(255,61,0,0.25) !important;
+        }
+        
+        .light-theme .mic-btn {
+          background: rgba(0,122,85,0.08) !important;
+          border-color: rgba(0,122,85,0.3) !important;
+        }
+        
+        .light-theme .pred-bar-wrap,
+        .light-theme .trust-bar-wrap {
+          background: rgba(0,0,0,0.1) !important;
+        }
+
+        .light-theme .vote-btn.up.active { background: rgba(0,122,85,0.15) !important; }
+        .light-theme .vote-btn.down.active { background: rgba(255,61,0,0.15) !important; }
       `}</style>
     </aside>
   );

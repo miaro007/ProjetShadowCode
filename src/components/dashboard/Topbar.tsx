@@ -18,18 +18,12 @@ export default function Topbar({ displayName, location, onLogout, time, theme, o
           <div className="pulse" />
           <div style={{ display: "flex", flexDirection: "column" }}>
             <span className="brand">Ambota<b>kany</b></span>
-            <span className="slogan">On transforme le blocage en destination réussie.</span>
           </div>
         </div>
-        <span className="live">● LIVE</span>
       </div>
-
       <div className="center">
-        <span className="loc">📍 {location}</span>
-        <span className="sep">·</span>
         <span className="time">{time.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' })}</span>
       </div>
-
       <div className="right">
         <button className="theme-toggle" onClick={onToggleTheme}>
           {theme === 'dark' ? '☀️' : '🌙'}
