@@ -329,8 +329,6 @@ function DashboardContent() {
         {/* PANNEAU LATÉRAL */}
         <SidePanel
           onSignalIncident={handleSignalIncident}
-          simulationMode={simulationMode}
-          onToggleSimulation={() => setSimulationMode(!simulationMode)}
         />
       </div>
 
